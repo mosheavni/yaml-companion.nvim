@@ -1,7 +1,7 @@
 # yaml-companion.nvim [![Build](https://github.com/someone-stole-my-name/yaml-companion.nvim/actions/workflows/main.yml/badge.svg)](https://github.com/someone-stole-my-name/yaml-companion.nvim/actions/workflows/main.yml)
 
-![telescope](./resources/screenshots/telescope.png)
-![statusbar](./resources/screenshots/statusbar.png)
+![telescope](https://github.com/user-attachments/assets/0fb44da4-75db-4f83-add0-1a4b3320577e)
+![statusbar](https://github.com/user-attachments/assets/15ea0970-d155-4a58-9d2c-a4a02417f6ba)
 
 ## ⚡️ Requirements
 
@@ -13,7 +13,7 @@
 
 - Builtin Kubernetes manifest autodetection
 - Get/Set specific JSON schema per buffer
-- Extensible autodetection + Schema Store support 
+- Extensible autodetection + Schema Store support
 
 ## 📦 Installation
 
@@ -35,7 +35,7 @@ use {
 }
 ```
 
-## ⚙️  Configuration
+## ⚙️ Configuration
 
 **yaml-companion** comes with the following defaults:
 
@@ -101,6 +101,7 @@ No mappings included, you need to map it yourself or call it manually:
 ```
 
 Alternatively, you can use `vim.ui.select` to use the picker of your choice. In that case, you can bind/call the function:
+
 ```lua
 require("yaml-companion").open_ui_select()
 ```

@@ -1,5 +1,4 @@
 KUBERNETES_VERSION=1.22.4
-DOCKER_CI=ghcr.io/someone-stole-my-name/yaml.nvim-ci:0.8.0
 
 lint:
 	stylua -c .
@@ -10,12 +9,16 @@ test: lint
 prepare:
 	git clone --depth 1 https://github.com/nvim-lua/plenary.nvim ../plenary.nvim
 	git clone --depth 1 https://github.com/neovim/nvim-lspconfig ../nvim-lspconfig
+
 	# setup stylua
 	curl -L -o stylua.zip https://github.com/JohnnyMorganz/StyLua/releases/latest/download/stylua-linux-x86_64.zip
 	unzip stylua.zip
 	rm stylua.zip
 	chmod +x stylua
 	sudo mv stylua /usr/local/bin/
+
+	# setup yaml-language-server
+	npm install -g yaml-language-server
 
 generate-kubernetes: generate_kubernetes_version generate_kubernetes_resources
 

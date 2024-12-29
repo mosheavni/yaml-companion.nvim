@@ -5,12 +5,6 @@ on:
   pull_request:
     branches: [main]
   workflow_dispatch:
-# jobs:
-#   build:
-#     runs-on: ubuntu-latest
-#     steps:
-#       - uses: actions/checkout@v3
-#       - run: cd $GITHUB_WORKSPACE && make docker-test
 jobs:
   build:
     runs-on: ${{ matrix.os }}
@@ -28,6 +22,10 @@ jobs:
         with:
           neovim: true
           version: ${{ matrix.rev }}
+
+      - uses: actions/setup-node@v3
+        with:
+          node-version: "20"
 
       - name: Install dependencies
         run: make prepare

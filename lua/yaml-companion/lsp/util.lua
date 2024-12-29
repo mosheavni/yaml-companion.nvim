@@ -5,11 +5,12 @@ local log = require("yaml-companion.log")
 local sync_timeout = 5000
 
 ---@param bufnr number
----@return vim.lsp.client | nil
+---@return vim.lsp.Client | nil
 M.get_client = function(bufnr)
-  ---@diagnostic disable-next-line: deprecated
-  local get_clients = vim.lsp.get_clients and vim.lsp.get_clients or vim.lsp.get_active_clients
-  return get_clients({ name = "yamlls", bufnr = bufnr })[1]
+  local clients = vim.lsp.get_clients({ name = "yamlls", bufnr = bufnr })
+  if #clients > 0 then
+    return clients[1]
+  end
 end
 
 ---@param bufnr number

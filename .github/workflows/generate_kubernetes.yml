@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - run: cd $GITHUB_WORKSPACE && make docker-generate-kubernetes
+      - run: cd $GITHUB_WORKSPACE && make generate-kubernetes
       - uses: tibdex/github-app-token@v1
         id: generate-token
         with:

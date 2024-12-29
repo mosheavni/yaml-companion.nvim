@@ -1,13 +1,36 @@
 name: Build
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
   workflow_dispatch:
+# jobs:
+#   build:
+#     runs-on: ubuntu-latest
+#     steps:
+#       - uses: actions/checkout@v3
+#       - run: cd $GITHUB_WORKSPACE && make docker-test
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+    name: unit tests
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-22.04]
+        rev: [nightly]
+
     steps:
-      - uses: actions/checkout@v3
-      - run: cd $GITHUB_WORKSPACE && make docker-test
+      - uses: actions/checkout@v4
+
+      - uses: rhysd/action-setup-vim@v1
+        with:
+          neovim: true
+          version: ${{ matrix.rev }}
+
+      - name: Run tests
+        run: |
+          nvim --version
+          cd $GITHUB_WORKSPACE
+          make test

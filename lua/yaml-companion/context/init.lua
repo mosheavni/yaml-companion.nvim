@@ -6,12 +6,12 @@ local schema = require("yaml-companion.schema")
 
 local log = require("yaml-companion.log")
 
----@type { client: vim.lsp.client, schema: Schema, executed: boolean}[]
+---@type { client: vim.lsp.Client, schema: Schema, executed: boolean}[]
 M.ctxs = {}
 M.initialized_client_ids = {}
 
 ---@param bufnr number
----@param client vim.lsp.client
+---@param client vim.lsp.Client
 ---@return SchemaResult | nil
 M.autodiscover = function(bufnr, client)
   if not M.ctxs[bufnr] then
@@ -90,7 +90,7 @@ M.autodiscover = function(bufnr, client)
 end
 
 ---@param bufnr number
----@param client vim.lsp.client
+---@param client vim.lsp.Client
 M.setup = function(bufnr, client)
   if client.name ~= "yamlls" then
     return
@@ -145,7 +145,7 @@ M.schema = function(bufnr, new_schema)
     new_schema = new_schema.result[1]
   end
 
-  if new_schema and new_schema.uri then
+  if new_schema and new_schema.uri and new_schema.name then
     M.ctxs[bufnr].schema = new_schema
 
     local bufuri = vim.uri_from_bufnr(bufnr)

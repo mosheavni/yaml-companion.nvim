@@ -1,4 +1,4 @@
-# yaml-companion.nvim [![Build](https://github.com/mosheavni/yaml-companion.nvim/actions/workflows/main.yml/badge.svg)](https://github.com/someone-stole-my-name/yaml-companion.nvim/actions/workflows/main.yml)
+# yaml-companion.nvim [![Build](https://github.com/mosheavni/yaml-companion.nvim/actions/workflows/main.yml/badge.svg)](https://github.com/mosheavni/yaml-companion.nvim/actions/workflows/main.yml)
 
 ![telescope](https://github.com/user-attachments/assets/0fb44da4-75db-4f83-add0-1a4b3320577e)
 ![statusbar](https://github.com/user-attachments/assets/15ea0970-d155-4a58-9d2c-a4a02417f6ba)

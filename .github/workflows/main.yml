@@ -29,11 +29,6 @@ jobs:
           neovim: true
           version: ${{ matrix.rev }}
 
-      - uses: JohnnyMorganz/stylua-action@v4
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          version: latest # NOTE: we recommend pinning to a specific version in case of formatting changes
-
       - name: Install dependencies
         run: make prepare
 

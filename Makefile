@@ -10,6 +10,12 @@ test: lint
 prepare:
 	git clone --depth 1 https://github.com/nvim-lua/plenary.nvim ../plenary.nvim
 	git clone --depth 1 https://github.com/neovim/nvim-lspconfig ../nvim-lspconfig
+	# setup stylua
+	curl -L -o stylua.zip https://github.com/JohnnyMorganz/StyLua/releases/latest/download/stylua-linux-x86_64.zip
+	unzip stylua.zip
+	rm stylua.zip
+	chmod +x stylua
+	sudo mv stylua /usr/local/bin/
 
 generate-kubernetes: generate_kubernetes_version generate_kubernetes_resources
 

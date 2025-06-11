@@ -51,8 +51,8 @@ use({
   -- Additional schemas available in Telescope picker
   schemas = {
     --{
-      --name = "Kubernetes 1.22.4",
-      --uri = "https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/v1.22.4-standalone-strict/all.json",
+      --name = "Kubernetes 1.32.1",
+      --uri = "https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/v1.32.1-standalone-strict/all.json",
     --},
   },
 

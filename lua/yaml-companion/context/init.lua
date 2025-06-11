@@ -103,6 +103,23 @@ M.setup = function(bufnr, client)
     client.server_capabilities.documentRangeFormattingProvider = true
   end
 
+  -- Add workspace_did_change_configuration if it doesn't exist
+  if not client.workspace_did_change_configuration then
+    ---@param settings table|nil
+    ---@return boolean|nil
+    client.workspace_did_change_configuration = function(settings)
+      if not settings then
+        return
+      end
+      if vim.tbl_isempty(settings) then
+        settings = { [vim.type_idx] = vim.types.dictionary }
+      end
+      return client.notify("workspace/didChangeConfiguration", {
+        settings = settings,
+      })
+    end
+  end
+
   -- remove yamlls from not yaml files
   -- https://github.com/towolf/vim-helm/issues/15
   if vim.bo[bufnr].buftype ~= "" or vim.bo[bufnr].filetype == "helm" then

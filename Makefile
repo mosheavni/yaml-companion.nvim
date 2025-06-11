@@ -1,4 +1,4 @@
-KUBERNETES_VERSION=1.22.4
+KUBERNETES_VERSION=1.32.1
 
 lint:
 	stylua -c .

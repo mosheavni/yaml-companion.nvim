@@ -13,20 +13,19 @@
 
 - Builtin Kubernetes manifest autodetection
 - Get/Set specific JSON schema per buffer
-- Extensible autodetection + Schema Store support
+- Extendable autodetection + Schema Store support
 
 ## 📦 Installation
 
 Install the plugin and load the `telescope` extension with your preferred
 package manager:
 
-**lazy.nvim**
+### lazy.nvim
 
 ```lua
 {
   "mosheavni/yaml-companion.nvim",
   dependencies = {
-    { "neovim/nvim-lspconfig" },
     { "nvim-lua/plenary.nvim" },
     { "nvim-telescope/telescope.nvim" },
   },
@@ -80,6 +79,21 @@ package manager:
   },
 }
 ```
+
+### Using Neovim's native LSP API (Neovim 0.11+)
+
+```lua
+local cfg = require("yaml-companion").setup({
+  -- Add any options here, or leave empty to use the default settings
+  -- lspconfig = {
+  --   cmd = {"yaml-language-server"}
+  -- },
+})
+vim.lsp.config("yamlls", cfg)
+vim.lsp.enable("yamlls")
+```
+
+### Using nvim-lspconfig (legacy)
 
 ```lua
 local cfg = require("yaml-companion").setup({

@@ -167,7 +167,11 @@ M.schema = function(bufnr, new_schema)
 
     local bufuri = vim.uri_from_bufnr(bufnr)
     local client = M.ctxs[bufnr].client
-    local settings = client.settings
+    local settings = client.settings or {}
+
+    -- Ensure yaml.schemas exists
+    settings.yaml = settings.yaml or {}
+    settings.yaml.schemas = settings.yaml.schemas or {}
 
     -- we don't want more than 1 schema per file
     for key, _ in pairs(settings.yaml.schemas) do

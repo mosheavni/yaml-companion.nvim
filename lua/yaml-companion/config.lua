@@ -93,9 +93,15 @@ function M.setup(options, on_attach)
     end
   end
 
-  handlers["yaml/schema/store/initialized"] =
-    require("yaml-companion.lsp.handler").store_initialized
+  local store_initialized_handler = require("yaml-companion.lsp.handler").store_initialized
+
+  -- Register handler both in lspconfig options (for lspconfig users)
+  -- and globally (for native vim.lsp.config users)
+  handlers["yaml/schema/store/initialized"] = store_initialized_handler
   M.options.lspconfig.handlers = handlers
+
+  -- Also register globally for native vim.lsp.config/vim.lsp.enable support
+  vim.lsp.handlers["yaml/schema/store/initialized"] = store_initialized_handler
 end
 
 return M

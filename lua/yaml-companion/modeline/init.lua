@@ -4,6 +4,17 @@ local M = {}
 M.MODELINE_PATTERN = "^#%s*yaml%-language%-server:%s*%$schema=(.+)$"
 M.MODELINE_FORMAT = "# yaml-language-server: $schema=%s"
 
+--- Get all lines from a buffer safely
+---@param bufnr number
+---@return string[]|nil lines, nil on invalid buffer
+function M.get_buf_lines(bufnr)
+  if not vim.api.nvim_buf_is_valid(bufnr) then
+    return nil
+  end
+  local ok, lines = pcall(vim.api.nvim_buf_get_lines, bufnr, 0, -1, false)
+  return ok and lines or nil
+end
+
 --- Parse an existing modeline from a line
 ---@param line string
 ---@return string|nil schema_url
@@ -28,8 +39,6 @@ end
 ---@param end_line? number End line (1-indexed, defaults to buffer end)
 ---@return ModelineInfo|nil
 function M.find_modeline(bufnr, start_line, end_line)
-  bufnr = bufnr == 0 and vim.api.nvim_get_current_buf() or bufnr
-
   if not vim.api.nvim_buf_is_valid(bufnr) then
     return nil
   end
@@ -68,8 +77,6 @@ end
 ---@param overwrite? boolean Whether to replace existing modeline (defaults to false)
 ---@return boolean success
 function M.set_modeline(bufnr, schema_url, line_number, overwrite)
-  bufnr = bufnr == 0 and vim.api.nvim_get_current_buf() or bufnr
-
   if not vim.api.nvim_buf_is_valid(bufnr) then
     return false
   end
@@ -109,14 +116,8 @@ end
 ---@param bufnr number
 ---@return DocumentBoundary[]
 function M.find_document_boundaries(bufnr)
-  bufnr = bufnr == 0 and vim.api.nvim_get_current_buf() or bufnr
-
-  if not vim.api.nvim_buf_is_valid(bufnr) then
-    return {}
-  end
-
-  local ok, lines = pcall(vim.api.nvim_buf_get_lines, bufnr, 0, -1, false)
-  if not ok then
+  local lines = M.get_buf_lines(bufnr)
+  if not lines then
     return {}
   end
 

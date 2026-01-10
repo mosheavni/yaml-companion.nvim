@@ -3,48 +3,6 @@ local config = require("yaml-companion.config")
 
 local M = {}
 
--- Default core API groups that should NOT get Datree CRD schemas
--- These are handled by the builtin kubernetes matcher
-M.DEFAULT_CORE_API_GROUPS = {
-  [""] = true,
-  ["admissionregistration.k8s.io"] = true,
-  ["apiextensions.k8s.io"] = true,
-  ["apps"] = true,
-  ["autoscaling"] = true,
-  ["batch"] = true,
-  ["certificates.k8s.io"] = true,
-  ["coordination.k8s.io"] = true,
-  ["discovery.k8s.io"] = true,
-  ["events.k8s.io"] = true,
-  ["flowcontrol.apiserver.k8s.io"] = true,
-  ["networking.k8s.io"] = true,
-  ["node.k8s.io"] = true,
-  ["policy"] = true,
-  ["rbac.authorization.k8s.io"] = true,
-  ["scheduling.k8s.io"] = true,
-  ["storage.k8s.io"] = true,
-}
-
---- Get core API groups from config or use defaults
----@return table<string, boolean>
-local function get_core_api_groups()
-  local opts = config.options
-  if opts.core_api_groups then
-    return opts.core_api_groups
-  end
-  return M.DEFAULT_CORE_API_GROUPS
-end
-
---- Get the raw content base URL from config or use default
----@return string
-local function get_raw_content_base()
-  local opts = config.options
-  if opts.datree and opts.datree.raw_content_base then
-    return opts.datree.raw_content_base
-  end
-  return "https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/"
-end
-
 --- Parse apiVersion to extract group and version
 ---@param api_version string e.g., "argoproj.io/v1alpha1" or "v1"
 ---@return string group, string version
@@ -66,22 +24,15 @@ end
 ---@param api_group string
 ---@return boolean
 function M.is_core_api_group(api_group)
-  local core_groups = get_core_api_groups()
-  return core_groups[api_group] == true
+  return config.options.core_api_groups[api_group] == true
 end
 
 --- Detect all CRDs in a buffer
 ---@param bufnr number
 ---@return CRDInfo[]
 function M.detect_crds(bufnr)
-  bufnr = bufnr == 0 and vim.api.nvim_get_current_buf() or bufnr
-
-  if not vim.api.nvim_buf_is_valid(bufnr) then
-    return {}
-  end
-
-  local ok, lines = pcall(vim.api.nvim_buf_get_lines, bufnr, 0, -1, false)
-  if not ok then
+  local lines = modeline.get_buf_lines(bufnr)
+  if not lines then
     return {}
   end
 
@@ -146,7 +97,7 @@ function M.build_crd_schema_url(crd)
 
   -- Format: {apiGroup}/{kind}_{version}.json
   local path = string.format("%s/%s_%s.json", crd.apiGroup, crd.kind:lower(), crd.version)
-  return get_raw_content_base() .. path
+  return config.options.datree.raw_content_base .. path
 end
 
 --- Add modelines for all detected non-core CRDs
@@ -154,7 +105,6 @@ end
 ---@param options? { dry_run: boolean, overwrite: boolean }
 ---@return AddModelinesResult
 function M.add_modelines(bufnr, options)
-  bufnr = bufnr == 0 and vim.api.nvim_get_current_buf() or bufnr
   options = options or {}
 
   local result = {
@@ -264,9 +214,8 @@ function M.health()
 
   health.ok("CRD detector loaded")
 
-  local core_groups = get_core_api_groups()
   local count = 0
-  for _ in pairs(core_groups) do
+  for _ in pairs(config.options.core_api_groups) do
     count = count + 1
   end
   health.info(string.format("%d core API groups configured", count))

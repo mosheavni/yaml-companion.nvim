@@ -1,4 +1,5 @@
---# selene: allow(undefined_variable)
+--# selene: allow(undefined_variable, incorrect_standard_library_use)
+---@diagnostic disable: undefined-field
 local eq = assert.are.same
 
 local detector = require("yaml-companion.modeline.crd_detector")
@@ -24,6 +25,7 @@ describe("CRD detector:", function()
     end)
 
     it("should handle nil input", function()
+      ---@diagnostic disable-next-line: param-type-mismatch
       local group, version = detector.parse_api_version(nil)
       eq("", group)
       eq("", version)

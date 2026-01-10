@@ -10,33 +10,13 @@ M._cache = nil
 local GITHUB_TREE_URL =
   "https://api.github.com/repos/datreeio/CRDs-catalog/git/trees/main?recursive=1"
 
---- Get the raw content base URL from config or use default
----@return string
-local function get_raw_content_base()
-  local opts = config.options
-  if opts.datree and opts.datree.raw_content_base then
-    return opts.datree.raw_content_base
-  end
-  return "https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/"
-end
-
---- Get cache TTL from config or use default (3600 seconds = 1 hour)
----@return number
-local function get_cache_ttl()
-  local opts = config.options
-  if opts.datree and opts.datree.cache_ttl then
-    return opts.datree.cache_ttl
-  end
-  return 3600
-end
-
 --- Check if cache is still valid
 ---@return boolean
 local function is_cache_valid()
   if not M._cache then
     return false
   end
-  local ttl = get_cache_ttl()
+  local ttl = config.options.datree.cache_ttl
   if ttl <= 0 then
     return false
   end
@@ -56,7 +36,7 @@ end
 ---@param path string
 ---@return string
 function M.build_schema_url(path)
-  return get_raw_content_base() .. path
+  return config.options.datree.raw_content_base .. path
 end
 
 --- Parse GitHub API tree response and extract JSON schema entries

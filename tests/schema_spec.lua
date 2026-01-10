@@ -1,3 +1,4 @@
+--# selene: allow(undefined_variable)
 local eq = assert.are.same
 
 local function wait_until(fn)
@@ -8,16 +9,17 @@ local function wait_until(fn)
       return true
     end
   end
-  vim.api.nvim_err_writeln("wait_until: timeout exceeded")
+  vim.notify("wait_until: timeout exceeded", vim.log.levels.ERROR)
   return false
 end
 
 local function buf(input, ft, name)
   local b = vim.api.nvim_create_buf(false, false)
+  -- Set lines BEFORE name/filetype to ensure content is available when LSP attaches
+  vim.api.nvim_buf_set_lines(b, 0, -1, true, vim.split(input, "\n"))
   vim.api.nvim_buf_set_name(b, name)
   vim.api.nvim_set_option_value("filetype", ft, { buf = b })
   vim.api.nvim_command("buffer " .. b)
-  vim.api.nvim_buf_set_lines(b, 0, -1, true, vim.split(input, "\n"))
   return wait_until(function()
     local clients = vim.lsp.get_clients()
     if #clients > 0 then
@@ -52,16 +54,16 @@ describe("user defined schemas:", function()
 
   local custom_schema = {
     name = "Some custom schema",
-    uri = "https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/v1.22.5-standalone-strict/all.json",
+    uri = "https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/v1.32.1-standalone-strict/all.json",
   }
 
   it("options.schemas.result should add the schema to the list (legacy)", function()
-    local expect = custom_schema
-    expect.name = expect.name .. " (legacy)"
+    local test_schema = vim.deepcopy(custom_schema)
+    test_schema.name = test_schema.name .. " (legacy)"
     local result = {}
 
-    local yamlconfig = require("yaml-companion").setup({ schemas = { result = { custom_schema } } })
-    require("lspconfig")["yamlls"].setup(yamlconfig)
+    local yamlconfig = require("yaml-companion").setup({ schemas = { result = { test_schema } } })
+    SetupYamlls(yamlconfig)
 
     assert(buf("---\nfoo: bar\n", "yaml", "foo.yaml"))
     assert(wait_for_schemas())
@@ -69,22 +71,22 @@ describe("user defined schemas:", function()
     local all_schemas = require("yaml-companion.schema").all()
 
     for _, schema in ipairs(all_schemas) do
-      if schema.name == custom_schema.name then
+      if schema.name == test_schema.name then
         result = schema
         break
       end
     end
 
-    eq(expect.uri, result.uri)
+    eq(test_schema.uri, result.uri)
   end)
 
   it("options.schemas should add the schemas to the list (new)", function()
-    local expect = custom_schema
-    expect.name = expect.name .. " (new)"
+    local test_schema = vim.deepcopy(custom_schema)
+    test_schema.name = test_schema.name .. " (new)"
     local result = {}
 
-    local yamlconfig = require("yaml-companion").setup({ schemas = { custom_schema } })
-    require("lspconfig")["yamlls"].setup(yamlconfig)
+    local yamlconfig = require("yaml-companion").setup({ schemas = { test_schema } })
+    SetupYamlls(yamlconfig)
 
     assert(buf("---\nfoo: bar\n", "yaml", "foo.yaml"))
     assert(wait_for_schemas())
@@ -92,12 +94,12 @@ describe("user defined schemas:", function()
     local all_schemas = require("yaml-companion.schema").all()
 
     for _, schema in ipairs(all_schemas) do
-      if schema.name == custom_schema.name then
+      if schema.name == test_schema.name then
         result = schema
         break
       end
     end
 
-    eq(expect.uri, result.uri)
+    eq(test_schema.uri, result.uri)
   end)
 end)

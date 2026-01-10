@@ -1,6 +1,6 @@
 local M = {}
 
-local options = require("yaml-companion.config").options
+local config = require("yaml-companion.config")
 local matchers = require("yaml-companion._matchers")._loaded
 local lsp = require("yaml-companion.lsp.requests")
 
@@ -22,8 +22,8 @@ end
 local options_legacy = function()
   ---@type Schema[]
   local r = {}
-  if options and options.schemas and options.schemas.result then
-    for _, schema in ipairs(options.schemas.result) do
+  if config.options and config.options.schemas and config.options.schemas.result then
+    for _, schema in ipairs(config.options.schemas.result) do
       if valid_schema(schema) then
         table.insert(r, schema)
       end
@@ -35,8 +35,8 @@ end
 ---@return Schema[]
 local options_new = function()
   local r = {}
-  if options and options.schemas and not options.schemas.result then
-    for _, schema in ipairs(options.schemas) do
+  if config.options and config.options.schemas and not config.options.schemas.result then
+    for _, schema in ipairs(config.options.schemas) do
       if valid_schema(schema) then
         table.insert(r, schema)
       end

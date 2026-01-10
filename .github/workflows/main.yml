@@ -23,7 +23,7 @@ jobs:
           neovim: true
           version: ${{ matrix.rev }}
 
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v4
         with:
           node-version: "20"
 
@@ -33,5 +33,5 @@ jobs:
       - name: Run tests
         run: |
           nvim --version
-          cd $GITHUB_WORKSPACE
+          cd "$GITHUB_WORKSPACE"
           make test

@@ -1,7 +1,21 @@
 local M = {}
 local handlers = require("vim.lsp.handlers")
 local matchers = require("yaml-companion._matchers")
-local add_hook_after = require("lspconfig.util").add_hook_after
+
+--- Chains two callbacks, running the hook after the original
+---@param original function|nil
+---@param hook function
+---@return function
+local function add_hook_after(original, hook)
+  if original then
+    return function(...)
+      original(...)
+      return hook(...)
+    end
+  else
+    return hook
+  end
+end
 
 ---@type ConfigOptions
 M.defaults = {
@@ -52,11 +66,15 @@ function M.setup(options, on_attach)
   M.options.lspconfig.on_attach = add_hook_after(options.lspconfig.on_attach, on_attach)
 
   local all_schemas = vim.deepcopy(M.options.schemas)
+  -- Handle legacy format: { result = { schema1, schema2, ... } }
+  if all_schemas.result and type(all_schemas.result) == "table" then
+    all_schemas = all_schemas.result
+  end
   local collected_uris = {}
   M.options.schemas = {}
   for _, schema in pairs(all_schemas) do
     if not schema.uri then
-      schema.uri = schema.url
+      schema.uri = schema["url"] -- legacy fallback
     end
     if not collected_uris[schema.uri] then
       vim.list_extend(M.options.schemas, { schema })

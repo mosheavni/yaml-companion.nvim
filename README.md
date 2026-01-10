@@ -17,14 +17,15 @@
 
 ## 📦 Installation
 
-Install the plugin and load the `telescope` extension with your preferred package manager:
+Install the plugin and load the `telescope` extension with your preferred
+package manager:
 
-**Packer**
+**lazy.nvim**
 
 ```lua
-use({
+{
   "mosheavni/yaml-companion.nvim",
-  requires = {
+  dependencies = {
     { "neovim/nvim-lspconfig" },
     { "nvim-lua/plenary.nvim" },
     { "nvim-telescope/telescope.nvim" },
@@ -32,7 +33,7 @@ use({
   config = function()
     require("telescope").load_extension("yaml_schema")
   end,
-})
+}
 ```
 
 ## ⚙️ Configuration

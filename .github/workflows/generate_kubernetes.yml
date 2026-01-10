@@ -8,8 +8,10 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - run: cd $GITHUB_WORKSPACE && make generate-kubernetes
+      - uses: actions/checkout@v4
+      - name: Install Perl dependencies
+        run: sudo apt-get update && sudo apt-get install -y libjson-xs-perl libwww-perl
+      - run: cd "$GITHUB_WORKSPACE" && make generate-kubernetes
       - uses: tibdex/github-app-token@v1
         id: generate-token
         with:

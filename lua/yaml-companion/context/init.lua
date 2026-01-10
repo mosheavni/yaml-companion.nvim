@@ -114,7 +114,7 @@ M.setup = function(bufnr, client)
       if vim.tbl_isempty(settings) then
         settings = { [vim.type_idx] = vim.types.dictionary }
       end
-      return client.notify("workspace/didChangeConfiguration", {
+      return client:notify("workspace/didChangeConfiguration", {
         settings = settings,
       })
     end

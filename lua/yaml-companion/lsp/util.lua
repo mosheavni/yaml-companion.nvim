@@ -21,7 +21,7 @@ M.request_sync = function(bufnr, method)
 
   if client then
     local response, error =
-      client.request_sync(method, { vim.uri_from_bufnr(bufnr) }, sync_timeout, bufnr)
+      client:request_sync(method, { vim.uri_from_bufnr(bufnr) }, sync_timeout, bufnr)
 
     if error then
       log.fmt_error("bufnr=%d error=%s", bufnr, error)

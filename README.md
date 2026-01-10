@@ -181,6 +181,7 @@ require("yaml-companion").setup({
     },
     overwrite_existing = false,  -- Whether to overwrite existing modelines
     validate_urls = false,       -- Check if schema URL exists (slower)
+    notify = true,               -- Show notifications when modelines are added
   },
 
   -- Datree CRD catalog settings

@@ -23,6 +23,7 @@
 ---@field auto_add ModelineAutoAddConfig
 ---@field overwrite_existing boolean Whether to overwrite existing modelines
 ---@field validate_urls boolean HTTP HEAD check before adding (slower)
+---@field notify boolean Show notifications when modelines are added
 
 ---@class DatreeConfig
 ---@field cache_ttl number Cache TTL in seconds (0 = no cache)

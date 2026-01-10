@@ -34,6 +34,7 @@ M.defaults = {
     },
     overwrite_existing = false, -- Whether to overwrite existing modelines
     validate_urls = false, -- HTTP HEAD check before adding (slower)
+    notify = true, -- Show notifications when modelines are added
   },
   -- Datree CRD catalog settings
   datree = {

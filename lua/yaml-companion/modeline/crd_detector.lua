@@ -245,7 +245,9 @@ function M.add_modelines(bufnr, options)
   end
 
   -- Notify user of what was added
-  if not options.dry_run and #added_kinds > 0 then
+  local opts = config.options
+  local should_notify = opts.modeline and opts.modeline.notify ~= false
+  if not options.dry_run and #added_kinds > 0 and should_notify then
     vim.notify(
       "Added modelines for: " .. table.concat(added_kinds, ", "),
       vim.log.levels.INFO,

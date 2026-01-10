@@ -171,6 +171,7 @@ M.schema = function(bufnr, new_schema)
 
     -- Ensure yaml.schemas exists
     settings.yaml = settings.yaml or {}
+    ---@diagnostic disable-next-line: inject-field
     settings.yaml.schemas = settings.yaml.schemas or {}
 
     -- we don't want more than 1 schema per file

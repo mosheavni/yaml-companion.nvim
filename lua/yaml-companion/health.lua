@@ -9,6 +9,7 @@ local plugins = {
 
 local binaries = {
   { bin = "yaml-language-server", optional = false },
+  { bin = "curl", optional = true, info = "Required for Datree CRD catalog" },
 }
 
 local binary_installed = function(binary)
@@ -53,6 +54,11 @@ M.check = function()
     health.start(string.format("Matcher: `%s`", name))
     matcher.health()
   end
+
+  -- Modeline features health check
+  health.start("Modeline Features")
+  require("yaml-companion.modeline.datree").health()
+  require("yaml-companion.modeline.crd_detector").health()
 end
 
 return M

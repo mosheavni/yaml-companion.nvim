@@ -21,7 +21,6 @@ local default_config = {
   float_precision = 0.01,
 }
 
----@type Logger
 local log = {}
 
 log.new = function(config, standalone)
@@ -112,7 +111,7 @@ log.new = function(config, standalone)
     end
   end
 
-  return log
+  return obj
 end
 
 return log

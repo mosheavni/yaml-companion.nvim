@@ -26,6 +26,41 @@ M.defaults = {
     cloud_init = { enabled = true },
   },
   schemas = {},
+  -- Modeline features configuration
+  modeline = {
+    auto_add = {
+      on_attach = false, -- Auto-add modelines when yamlls attaches
+      on_save = false, -- Auto-add modelines on BufWritePre
+    },
+    overwrite_existing = false, -- Whether to overwrite existing modelines
+    validate_urls = false, -- HTTP HEAD check before adding (slower)
+  },
+  -- Datree CRD catalog settings
+  datree = {
+    cache_ttl = 3600, -- Cache TTL in seconds (0 = no cache)
+    raw_content_base = "https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/",
+  },
+  -- Core API groups to skip (configurable by users)
+  -- These are handled by the builtin kubernetes matcher
+  core_api_groups = {
+    [""] = true,
+    ["admissionregistration.k8s.io"] = true,
+    ["apiextensions.k8s.io"] = true,
+    ["apps"] = true,
+    ["autoscaling"] = true,
+    ["batch"] = true,
+    ["certificates.k8s.io"] = true,
+    ["coordination.k8s.io"] = true,
+    ["discovery.k8s.io"] = true,
+    ["events.k8s.io"] = true,
+    ["flowcontrol.apiserver.k8s.io"] = true,
+    ["networking.k8s.io"] = true,
+    ["node.k8s.io"] = true,
+    ["policy"] = true,
+    ["rbac.authorization.k8s.io"] = true,
+    ["scheduling.k8s.io"] = true,
+    ["storage.k8s.io"] = true,
+  },
   lspconfig = {
     flags = {
       debounce_text_changes = 150,

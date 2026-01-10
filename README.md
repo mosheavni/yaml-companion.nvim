@@ -12,6 +12,8 @@
 - Builtin Kubernetes manifest autodetection
 - Get/Set specific JSON schema per buffer
 - Extendable autodetection + Schema Store support
+- CRD modeline support with [Datree CRD catalog](https://github.com/datreeio/CRDs-catalog) integration
+- Auto-detect Custom Resource Definitions and add schema modelines
 
 ## 📦 Installation
 
@@ -122,4 +124,79 @@ local function get_schema()
   end
   return schema.result[1].name
 end
+```
+
+## Modeline Features
+
+yaml-companion provides tools for working with YAML modelines (`# yaml-language-server: $schema=...`)
+to provide schema support for Custom Resource Definitions (CRDs).
+
+### Datree CRD Schema Picker
+
+Browse the [datreeio/CRDs-catalog](https://github.com/datreeio/CRDs-catalog) and add a modeline to the current buffer:
+
+```lua
+require("yaml-companion").open_datree_crd_select()
+```
+
+This fetches the catalog from GitHub (cached for 1 hour) and presents a picker to select a CRD schema.
+When selected, a modeline is added at the top of your file:
+
+```yaml
+# yaml-language-server: $schema=https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/argoproj.io/application_v1alpha1.json
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+```
+
+### Auto-detect CRDs
+
+Detect Custom Resource Definitions in the current buffer and add schema modelines automatically:
+
+```lua
+-- Add modelines for all detected CRDs
+require("yaml-companion").add_crd_modelines()
+
+-- Preview what would be added (dry run)
+require("yaml-companion").add_crd_modelines(0, { dry_run = true })
+
+-- Overwrite existing modelines
+require("yaml-companion").add_crd_modelines(0, { overwrite = true })
+```
+
+This parses the buffer for `kind:` and `apiVersion:` fields, identifies non-core Kubernetes resources,
+and adds modelines pointing to the appropriate schema in the Datree CRD catalog.
+
+Core Kubernetes resources (Deployments, Services, ConfigMaps, etc.) are skipped since they're
+handled by the builtin kubernetes matcher.
+
+### Modeline Configuration
+
+```lua
+require("yaml-companion").setup({
+  -- Modeline features
+  modeline = {
+    auto_add = {
+      on_attach = false,  -- Auto-add modelines when yamlls attaches
+      on_save = false,    -- Auto-add modelines before saving
+    },
+    overwrite_existing = false,  -- Whether to overwrite existing modelines
+    validate_urls = false,       -- Check if schema URL exists (slower)
+  },
+
+  -- Datree CRD catalog settings
+  datree = {
+    cache_ttl = 3600,  -- Cache catalog for 1 hour (0 = no cache)
+    raw_content_base = "https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/",
+  },
+
+  -- Customize which API groups are considered "core" (skipped by CRD detection)
+  -- These are handled by the builtin kubernetes matcher
+  core_api_groups = {
+    [""] = true,
+    ["apps"] = true,
+    ["batch"] = true,
+    ["networking.k8s.io"] = true,
+    -- ... add or remove as needed
+  },
+})
 ```

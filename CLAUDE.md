@@ -34,7 +34,7 @@ nvim --headless --noplugin -u tests/minimal_init.vim \
    - Matcher-detected schemas (Kubernetes, cloud-init)
    - SchemaStore schemas from LSP
 4. If matched, updates LSP config with schema override
-5. User can manually select via Telescope (`:Telescope yaml_schema`) or `vim.ui.select`
+5. User can manually select via `vim.ui.select`
 
 ### Module Responsibilities
 

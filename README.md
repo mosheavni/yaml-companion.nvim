@@ -1,12 +1,10 @@
 # yaml-companion.nvim [![Build](https://github.com/mosheavni/yaml-companion.nvim/actions/workflows/main.yml/badge.svg)](https://github.com/mosheavni/yaml-companion.nvim/actions/workflows/main.yml)
 
-![telescope](https://github.com/user-attachments/assets/0fb44da4-75db-4f83-add0-1a4b3320577e)
 ![statusbar](https://github.com/user-attachments/assets/15ea0970-d155-4a58-9d2c-a4a02417f6ba)
 
 ## ⚡️ Requirements
 
 - [plenary.nvim](https://github.com/nvim-lua/plenary.nvim)
-- [telescope.nvim](https://github.com/nvim-telescope/telescope.nvim)
 - [yaml-language-server](https://github.com/redhat-developer/yaml-language-server)
 
 ## ✨ Features
@@ -17,8 +15,7 @@
 
 ## 📦 Installation
 
-Install the plugin and load the `telescope` extension with your preferred
-package manager:
+Install the plugin with your preferred package manager:
 
 ### lazy.nvim
 
@@ -27,11 +24,7 @@ package manager:
   "mosheavni/yaml-companion.nvim",
   dependencies = {
     { "nvim-lua/plenary.nvim" },
-    { "nvim-telescope/telescope.nvim" },
   },
-  config = function()
-    require("telescope").load_extension("yaml_schema")
-  end,
 }
 ```
 
@@ -48,7 +41,7 @@ package manager:
     cloud_init = { enabled = true }
   },
 
-  -- Additional schemas available in Telescope picker
+  -- Additional schemas available in the picker
   schemas = {
     --{
       --name = "Kubernetes 1.32.1",
@@ -111,15 +104,11 @@ require("lspconfig")["yamlls"].setup(cfg)
 
 No mappings included, you need to map it yourself or call it manually:
 
-```
-:Telescope yaml_schema
-```
-
-Alternatively, you can use `vim.ui.select` to use the picker of your choice. In that case, you can bind/call the function:
-
 ```lua
 require("yaml-companion").open_ui_select()
 ```
+
+This uses `vim.ui.select` so you can use the picker of your choice (e.g., with [dressing.nvim](https://github.com/stevearc/dressing.nvim)).
 
 ### Get the schema name for the current buffer
 

@@ -1,10 +1,16 @@
+<!-- markdownlint-disable MD013 -->
+
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides guidance to Claude Code (claude.ai/code) when working with
+code in this repository.
 
 ## Project Overview
 
-yaml-companion.nvim is a Neovim plugin that enhances YAML editing by automatically detecting and managing JSON schemas for YAML files. It acts as a companion to the yaml-language-server (yamlls), providing intelligent schema detection and selection capabilities.
+yaml-companion.nvim is a Neovim plugin that enhances YAML editing by
+automatically detecting and managing JSON schemas for YAML files. It acts as a
+companion to the yaml-language-server (yamlls), providing intelligent schema
+detection and selection capabilities.
 
 ## Development Commands
 

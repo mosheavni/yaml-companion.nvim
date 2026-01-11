@@ -40,13 +40,6 @@ describe("health module:", function()
       assert.is_true(executable == 0 or executable == 1)
     end)
   end)
-
-  describe("plugin checking", function()
-    it("should detect plenary.nvim", function()
-      local ok = pcall(require, "plenary")
-      assert.is_true(ok)
-    end)
-  end)
 end)
 
 describe("health integration:", function()
@@ -84,7 +77,7 @@ describe("health helper functions:", function()
   end)
 
   it("pcall require should work for installed packages", function()
-    local ok, _ = pcall(require, "plenary")
+    local ok, _ = pcall(require, "yaml-companion")
     assert.is_true(ok)
   end)
 

@@ -2,9 +2,7 @@ local health = vim.health
 
 local M = {}
 
-local plugins = {
-  { lib = "plenary", optional = false },
-}
+local plugins = {}
 
 local binaries = {
   { bin = "yaml-language-server", optional = false },

@@ -7,7 +7,6 @@
 ## ⚡️ Requirements
 
 - Neovim 0.11+
-- [plenary.nvim](https://github.com/nvim-lua/plenary.nvim)
 - [yaml-language-server](https://github.com/redhat-developer/yaml-language-server)
 
 ## ✨ Features
@@ -27,9 +26,6 @@ Install the plugin with your preferred package manager:
 ```lua
 {
   "mosheavni/yaml-companion.nvim",
-  dependencies = {
-    { "nvim-lua/plenary.nvim" },
-  },
 }
 ```
 

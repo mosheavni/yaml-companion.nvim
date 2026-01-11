@@ -41,6 +41,12 @@ M.defaults = {
     cache_ttl = 3600, -- Cache TTL in seconds (0 = no cache)
     raw_content_base = "https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/",
   },
+  -- Key navigation features configuration
+  keys = {
+    enabled = true, -- Enable key navigation features
+    include_values = false, -- Show values in quickfix entries
+    max_value_length = 50, -- Truncate values longer than this in display
+  },
   -- Core API groups to skip (configurable by users)
   -- These are handled by the builtin kubernetes matcher
   core_api_groups = {

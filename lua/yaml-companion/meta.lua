@@ -4,6 +4,26 @@
 ---@class vim.lsp.Client
 ---@field workspace_did_change_configuration fun(settings: table): boolean|nil
 
+-- Key navigation types
+
+---@class YamlKeyInfo
+---@field key string Full dotted key path (e.g., "root.parent.child" or "items[0].name")
+---@field value string|nil Scalar value (nil for nested structures)
+---@field human string Human-readable format: "key = value" or "key:"
+---@field line number 1-indexed line number where key is defined
+---@field col number 1-indexed column number where key starts
+
+---@class YamlQuickfixEntry
+---@field bufnr number Buffer number
+---@field lnum number Line number (1-indexed)
+---@field col number Column number (1-indexed)
+---@field text string Display text: "key = value" format
+
+---@class KeysConfig
+---@field enabled boolean Enable key navigation features
+---@field include_values boolean Show values in quickfix entries
+---@field max_value_length number Truncate values longer than this in display
+
 ---@class Schema
 ---@field name string | nil
 ---@field uri string
@@ -69,6 +89,7 @@
 ---@field modeline ModelineConfig Modeline features configuration
 ---@field datree DatreeConfig Datree CRD catalog settings
 ---@field core_api_groups table<string, boolean> Core API groups to skip
+---@field keys KeysConfig Key navigation features configuration
 
 ---@class Logger
 ---@field fmt_debug fun(fmt: string, ...: any)

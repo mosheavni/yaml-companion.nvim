@@ -63,6 +63,10 @@ M.check = function()
   health.start("Modeline Features")
   require("yaml-companion.modeline.datree").health()
   require("yaml-companion.modeline.crd_detector").health()
+
+  -- Key navigation features health check
+  health.start("Key Navigation Features")
+  require("yaml-companion.keys").health()
 end
 
 return M

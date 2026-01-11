@@ -20,6 +20,7 @@
 - Extendable autodetection + Schema Store support
 - CRD modeline support with [Datree CRD catalog](https://github.com/datreeio/CRDs-catalog) integration
 - Auto-detect Custom Resource Definitions and add schema modelines
+- Key navigation: Browse all YAML keys in quickfix, get key/value at cursor
 
 ## 📦 Installation
 
@@ -116,6 +117,78 @@ local function get_schema()
   return schema.result[1].name
 end
 ```
+
+## Key Navigation
+
+Navigate YAML keys using treesitter. Requires the YAML treesitter parser (`:TSInstall yaml`).
+
+### Quickfix List
+
+Get all YAML keys in a quickfix list for easy navigation:
+
+```lua
+-- Open quickfix with all keys
+require("yaml-companion").get_keys_quickfix()
+
+-- Or use the command
+:YamlKeys
+```
+
+Each entry shows the full dotted key path:
+
+- `.metadata.name`
+- `.spec.containers[0].image`
+- `.spec.replicas`
+
+### Get Key at Cursor (API)
+
+Get the YAML key and value at the current cursor position:
+
+```lua
+local info = require("yaml-companion").get_key_at_cursor()
+if info then
+  print(info.key)    -- ".spec.containers[0].name"
+  print(info.value)  -- "my-container"
+  print(info.human)  -- ".spec.containers[0].name = my-container"
+  print(info.line)   -- 15
+  print(info.col)    -- 5
+end
+```
+
+This API is useful for building custom integrations. For example, to copy the current key path to clipboard:
+
+```lua
+vim.keymap.set("n", "<leader>yk", function()
+  local info = require("yaml-companion").get_key_at_cursor()
+  if info then
+    vim.fn.setreg("+", info.key)
+    vim.notify("Copied: " .. info.key)
+  end
+end, { desc = "Copy YAML key path" })
+
+-- Or to copy the value:
+vim.keymap.set("n", "<leader>yv", function()
+  local info = require("yaml-companion").get_key_at_cursor()
+  if info and info.value then
+    vim.fn.setreg("+", info.value)
+    vim.notify("Copied: " .. info.value)
+  end
+end, { desc = "Copy YAML value" })
+```
+
+### Key Navigation Configuration
+
+```lua
+require("yaml-companion").setup({
+  keys = {
+    enabled = true,          -- Enable key navigation features (creates :YamlKeys command)
+    include_values = false,  -- Show values in quickfix entries (default: false)
+    max_value_length = 50,   -- Truncate long values in display (when include_values = true)
+  },
+})
+```
+
+**Note:** Treesitter with YAML parser is required. Check with `:checkhealth yaml-companion`.
 
 ## Modeline Features
 

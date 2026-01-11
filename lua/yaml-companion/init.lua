@@ -70,6 +70,16 @@ M.setup = function(opts)
   end
 
   require("yaml-companion.log").new({ level = config.options.log_level }, true)
+
+  -- Register :YamlKeys user command if key navigation is enabled
+  if config.options.keys and config.options.keys.enabled then
+    vim.api.nvim_create_user_command("YamlKeys", function()
+      require("yaml-companion.keys").quickfix(0, { open = true })
+    end, {
+      desc = "List all YAML keys in quickfix",
+    })
+  end
+
   return config.options.lspconfig
 end
 
@@ -118,6 +128,22 @@ end
 ---@return ModelineInfo|nil
 M.get_modeline = function(bufnr)
   return require("yaml-companion.modeline").find_modeline(bufnr or 0)
+end
+
+--- Get all YAML keys in quickfix list
+--- Requires treesitter YAML parser to be installed (:TSInstall yaml)
+---@param bufnr? number Buffer number (defaults to current buffer)
+---@param opts? { open: boolean } Options (open=true to open quickfix window, default: true)
+---@return YamlQuickfixEntry[] entries List of quickfix entries
+M.get_keys_quickfix = function(bufnr, opts)
+  return require("yaml-companion.keys").quickfix(bufnr, opts)
+end
+
+--- Get key at cursor position
+--- Requires treesitter YAML parser to be installed (:TSInstall yaml)
+---@return YamlKeyInfo|nil info Key info at cursor, or nil if not found
+M.get_key_at_cursor = function()
+  return require("yaml-companion.keys").at_cursor()
 end
 
 return M

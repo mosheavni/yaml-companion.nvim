@@ -1,6 +1,10 @@
 <!-- markdownlint-disable MD013 -->
 
-# yaml-companion.nvim [![Build](https://github.com/mosheavni/yaml-companion.nvim/actions/workflows/main.yml/badge.svg)](https://github.com/mosheavni/yaml-companion.nvim/actions/workflows/main.yml) [![Neovim](https://img.shields.io/badge/Neovim-0.11+-blueviolet.svg?logo=neovim)](https://neovim.io)
+# yaml-companion.nvim
+
+[![Build](https://github.com/mosheavni/yaml-companion.nvim/actions/workflows/main.yml/badge.svg)](https://github.com/mosheavni/yaml-companion.nvim/actions/workflows/main.yml)
+[![Lint](https://github.com/mosheavni/yaml-companion.nvim/actions/workflows/super-linter.yml/badge.svg)](https://github.com/mosheavni/yaml-companion.nvim/actions/workflows/super-linter.yml)
+[![Neovim](https://img.shields.io/badge/Neovim-0.11+-blueviolet.svg?logo=neovim)](https://neovim.io)
 
 ![statusbar](https://github.com/user-attachments/assets/15ea0970-d155-4a58-9d2c-a4a02417f6ba)
 

@@ -28,6 +28,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           DEFAULT_BRANCH: main
           VALIDATE_ALL_CODEBASE: true
+          LINTER_RULES_PATH: .
 
           VALIDATE_LUA: true
           VALIDATE_YAML: true

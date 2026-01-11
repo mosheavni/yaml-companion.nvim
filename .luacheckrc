@@ -4,13 +4,14 @@ ignore = {
   "631", -- max_line_length (handled by stylua)
 }
 
-read_globals = {
+-- vim is both read and written to (vim.g, vim.b, etc.)
+globals = {
   "vim",
 }
 
 -- Test files use plenary.nvim busted-style globals
 files["tests/**/*.lua"] = {
-  read_globals = {
+  globals = {
     "describe",
     "it",
     "before_each",

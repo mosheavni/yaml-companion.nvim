@@ -1,3 +1,4 @@
+set noswapfile
 set runtimepath+=.
 set runtimepath+=../plenary.nvim/
 set runtimepath+=tests/dummy_matcher/

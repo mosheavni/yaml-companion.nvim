@@ -2,26 +2,24 @@ KUBERNETES_VERSION=1.32.1
 
 .PHONY: all lint test prepare generate-kubernetes generate_kubernetes_resources generate_kubernetes_version clean
 
-all: lint test
+all: test
 
 lint:
 	stylua -c .
 
-test: lint
+test: prepare lint
 	nvim --headless --noplugin -u tests/minimal_init.vim -c "PlenaryBustedDirectory tests  { minimal_init = './tests/minimal_init.vim' }"
 
 prepare:
-	git clone --depth 1 https://github.com/nvim-lua/plenary.nvim ../plenary.nvim
-
-	# setup stylua
-	curl -L -o stylua.zip https://github.com/JohnnyMorganz/StyLua/releases/latest/download/stylua-linux-x86_64.zip
-	unzip stylua.zip
-	rm -f stylua.zip
-	chmod +x stylua
-	sudo mv stylua /usr/local/bin/
-
-	# setup yaml-language-server
-	npm install -g yaml-language-server
+	@test -d ../plenary.nvim || git clone --depth 1 https://github.com/nvim-lua/plenary.nvim ../plenary.nvim
+	@command -v stylua >/dev/null || { \
+		curl -L -o stylua.zip https://github.com/JohnnyMorganz/StyLua/releases/latest/download/stylua-linux-x86_64.zip && \
+		unzip stylua.zip && \
+		rm -f stylua.zip && \
+		chmod +x stylua && \
+		sudo mv stylua /usr/local/bin/; \
+	}
+	@command -v yaml-language-server >/dev/null || npm install -g yaml-language-server
 
 generate-kubernetes: generate_kubernetes_version generate_kubernetes_resources
 

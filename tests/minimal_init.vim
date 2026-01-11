@@ -1,7 +1,6 @@
-set rtp+=.
-set rtp+=../plenary.nvim/
-set rtp+=../nvim-lspconfig/
-set rtp+=tests/dummy_matcher/
+set runtimepath+=.
+set runtimepath+=../plenary.nvim/
+set runtimepath+=tests/dummy_matcher/
 
 runtime! plugin/plenary.vim
 

@@ -1,9 +1,12 @@
-# yaml-companion.nvim [![Build](https://github.com/mosheavni/yaml-companion.nvim/actions/workflows/main.yml/badge.svg)](https://github.com/mosheavni/yaml-companion.nvim/actions/workflows/main.yml)
+<!-- markdownlint-disable MD013 -->
+
+# yaml-companion.nvim [![Build](https://github.com/mosheavni/yaml-companion.nvim/actions/workflows/main.yml/badge.svg)](https://github.com/mosheavni/yaml-companion.nvim/actions/workflows/main.yml) [![Neovim](https://img.shields.io/badge/Neovim-0.11+-blueviolet.svg?logo=neovim)](https://neovim.io)
 
 ![statusbar](https://github.com/user-attachments/assets/15ea0970-d155-4a58-9d2c-a4a02417f6ba)
 
 ## ⚡️ Requirements
 
+- Neovim 0.11+
 - [plenary.nvim](https://github.com/nvim-lua/plenary.nvim)
 - [yaml-language-server](https://github.com/redhat-developer/yaml-language-server)
 
@@ -75,29 +78,17 @@ Install the plugin with your preferred package manager:
 }
 ```
 
-### Using Neovim's native LSP API (Neovim 0.11+)
+### Setup (Neovim 0.11+ required)
 
 ```lua
 local cfg = require("yaml-companion").setup({
   -- Add any options here, or leave empty to use the default settings
   -- lspconfig = {
-  --   cmd = {"yaml-language-server"}
+  --   settings = { ... }
   -- },
 })
 vim.lsp.config("yamlls", cfg)
 vim.lsp.enable("yamlls")
-```
-
-### Using nvim-lspconfig (legacy)
-
-```lua
-local cfg = require("yaml-companion").setup({
-  -- Add any options here, or leave empty to use the default settings
-  -- lspconfig = {
-  --   cmd = {"yaml-language-server"}
-  -- },
-})
-require("lspconfig")["yamlls"].setup(cfg)
 ```
 
 ## 🚀 Usage
@@ -176,17 +167,17 @@ require("yaml-companion").setup({
   -- Modeline features
   modeline = {
     auto_add = {
-      on_attach = false,  -- Auto-add modelines when yamlls attaches
-      on_save = false,    -- Auto-add modelines before saving
+      on_attach = false, -- Auto-add modelines when yamlls attaches
+      on_save = false, -- Auto-add modelines before saving
     },
-    overwrite_existing = false,  -- Whether to overwrite existing modelines
-    validate_urls = false,       -- Check if schema URL exists (slower)
-    notify = true,               -- Show notifications when modelines are added
+    overwrite_existing = false, -- Whether to overwrite existing modelines
+    validate_urls = false, -- Check if schema URL exists (slower)
+    notify = true, -- Show notifications when modelines are added
   },
 
   -- Datree CRD catalog settings
   datree = {
-    cache_ttl = 3600,  -- Cache catalog for 1 hour (0 = no cache)
+    cache_ttl = 3600, -- Cache catalog for 1 hour (0 = no cache)
     raw_content_base = "https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/",
   },
 

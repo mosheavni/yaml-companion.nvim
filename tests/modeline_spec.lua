@@ -1,4 +1,5 @@
---# selene: allow(undefined_variable)
+---@diagnostic disable: need-check-nil, undefined-field, param-type-mismatch
+--# selene: allow(incorrect_standard_library_use)
 local eq = assert.are.same
 
 local modeline = require("yaml-companion.modeline")

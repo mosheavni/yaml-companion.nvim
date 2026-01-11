@@ -89,7 +89,7 @@ Tests use Plenary's busted-style test framework. Test files are in `tests/` dire
 - `yaml-companion_spec.lua` - Integration tests
 - `schema_spec.lua` - Schema resolution tests
 
-Tests require `plenary.nvim` and `nvim-lspconfig` cloned as siblings to this repo (done by `make prepare`).
+Tests require `plenary.nvim` cloned as a sibling to this repo (done by `make prepare`). Neovim 0.11+ is required for `vim.lsp.config` support.
 
 ## Generated Files
 

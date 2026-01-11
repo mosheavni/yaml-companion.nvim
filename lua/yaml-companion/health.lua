@@ -4,7 +4,6 @@ local M = {}
 
 local plugins = {
   { lib = "plenary", optional = false },
-  { lib = "lspconfig", optional = false },
 }
 
 local binaries = {
@@ -22,6 +21,13 @@ local function lualib_installed(lib_name)
 end
 
 M.check = function()
+  health.start("Checking Neovim version")
+  if vim.fn.has("nvim-0.11") == 1 then
+    health.ok("Neovim 0.11+ detected")
+  else
+    health.error("Neovim 0.11+ required for vim.lsp.config support")
+  end
+
   for _, binary in ipairs(binaries) do
     if not binary_installed(binary.bin) then
       local bin_not_installed = binary.bin .. " not found"

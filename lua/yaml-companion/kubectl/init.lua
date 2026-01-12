@@ -311,7 +311,7 @@ function M.fetch_from_buffer(bufnr)
 
   -- Check if buffer is valid YAML file
   local is_yaml, err = buffer_util.validate_yaml(bufnr)
-  if not is_yaml then
+  if not is_yaml and err then
     notify.warn(err)
     return
   end

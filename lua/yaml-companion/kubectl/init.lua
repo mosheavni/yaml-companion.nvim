@@ -1,5 +1,8 @@
 local config = require("yaml-companion.config")
-local modeline = require("yaml-companion.modeline")
+local cache = require("yaml-companion.cache")
+local notify = require("yaml-companion.util.notify")
+local buffer_util = require("yaml-companion.util.buffer")
+local schema_action = require("yaml-companion.schema_action")
 
 local M = {}
 
@@ -10,6 +13,16 @@ M._api_resources_cache = {}
 ---@return boolean
 function M.is_available()
   return vim.fn.executable("kubectl") == 1
+end
+
+--- Require kubectl to be available, showing error if not
+---@return boolean available
+local function require_kubectl()
+  if not M.is_available() then
+    notify.error("kubectl not found. Install kubectl to use cluster CRD features")
+    return false
+  end
+  return true
 end
 
 --- Get the current kubectl context name
@@ -26,30 +39,26 @@ function M.get_context_name()
   return context, nil
 end
 
---- Get cache directory path (creates if needed)
+--- Get cache subdirectory for current context
 ---@return string
-function M.get_cache_dir()
-  local base_dir = config.options.cluster_crds.cache_dir
-    or (vim.fn.stdpath("data") .. "/yaml-companion.nvim/crd-cache/")
-
-  -- Include context name in path for isolation
+local function get_cache_subdir()
   local context = M.get_context_name() or "default"
   -- Sanitize context name for filesystem
   context = context:gsub("[^%w%-_.]", "_")
+  return "crd-cache/" .. context
+end
 
-  local dir = base_dir .. context .. "/"
-
-  -- Create directory if it doesn't exist
-  vim.fn.mkdir(dir, "p")
-
-  return dir
+--- Get cache directory path (creates if needed)
+---@return string
+function M.get_cache_dir()
+  return cache.get_dir(get_cache_subdir())
 end
 
 --- Get path to cached schema file
 ---@param crd_name string
 ---@return string
 function M.get_cache_path(crd_name)
-  return M.get_cache_dir() .. crd_name .. ".json"
+  return cache.get_path(get_cache_subdir(), crd_name .. ".json")
 end
 
 --- Check if cache is still valid
@@ -57,39 +66,15 @@ end
 ---@return boolean
 function M.is_cache_valid(crd_name)
   local path = M.get_cache_path(crd_name)
-  local stat = vim.uv.fs_stat(path)
-  if not stat then
-    return false
-  end
-
   local ttl = config.options.cluster_crds.cache_ttl
-  if ttl == 0 then
-    return true -- Never expire
-  end
-
-  return (os.time() - stat.mtime.sec) < ttl
+  return cache.is_valid(path, ttl)
 end
 
 --- Get cached schema from disk
 ---@param crd_name string
 ---@return table|nil schema, string|nil error
 function M.get_cached_schema(crd_name)
-  local path = M.get_cache_path(crd_name)
-
-  local file = io.open(path, "r")
-  if not file then
-    return nil, "Cache file not found"
-  end
-
-  local content = file:read("*a")
-  file:close()
-
-  local ok, schema = pcall(vim.fn.json_decode, content)
-  if not ok then
-    return nil, "Failed to parse cached schema"
-  end
-
-  return schema, nil
+  return cache.load_json(M.get_cache_path(crd_name))
 end
 
 --- Cache schema to disk
@@ -98,21 +83,11 @@ end
 ---@return string|nil path, string|nil error
 function M.cache_schema(crd_name, schema)
   local path = M.get_cache_path(crd_name)
-
-  local ok, json = pcall(vim.fn.json_encode, schema)
-  if not ok then
-    return nil, "Failed to encode schema to JSON"
+  local ok, err = cache.save_json(path, schema)
+  if ok then
+    return path, nil
   end
-
-  local file = io.open(path, "w")
-  if not file then
-    return nil, "Failed to open cache file for writing"
-  end
-
-  file:write(json)
-  file:close()
-
-  return path, nil
+  return nil, err
 end
 
 --- Extract the stored version's schema from CRD JSON
@@ -200,10 +175,20 @@ function M.fetch_crd_schema(crd_name, callback)
       callback({
         name = crd_name,
         schema = schema,
-        version = version,
+        version = version or "unknown",
       }, nil)
     end)
   end)
+end
+
+--- Construct a likely CRD name from kind and apiGroup
+--- Uses common pluralization pattern: lowercase(kind) + "s" + "." + group
+---@param api_group string e.g., "argoproj.io"
+---@param kind string e.g., "Application"
+---@return string crd_name e.g., "applications.argoproj.io"
+function M.construct_crd_name(api_group, kind)
+  local kind_lower = kind:lower()
+  return kind_lower .. "s." .. api_group
 end
 
 --- Get CRD name from kind and apiGroup using api-resources
@@ -257,68 +242,61 @@ function M.get_crd_name(api_group, kind, callback)
   )
 end
 
---- Fetch CRD schema and add modeline to buffer
+--- Apply a schema to the buffer with the given action
+---@param bufnr number
+---@param crd_name string
+---@param url string The file:// URL to the cached schema
+---@param action SchemaAction
+---@param line_number number Line number for modeline
+---@param cached boolean Whether schema was from cache
+local function apply_schema(bufnr, crd_name, url, action, line_number, cached)
+  local schema = { name = "[cluster] " .. crd_name, uri = url }
+  schema_action.apply(bufnr, schema, action, {
+    line_number = line_number,
+    cached = cached,
+  })
+end
+
+--- Fetch CRD schema and apply to buffer (modeline or LSP)
 ---@param bufnr number
 ---@param crd_name string
 ---@param line_number? number Line number for modeline (default: 1)
-function M.fetch_and_add_modeline(bufnr, crd_name, line_number)
+---@param action? SchemaAction Action to apply (default: "modeline")
+function M.fetch_and_add_modeline(bufnr, crd_name, line_number, action)
   line_number = line_number or 1
+  action = action or "modeline"
 
   -- Check cache first
   if M.is_cache_valid(crd_name) then
     local cached_path = M.get_cache_path(crd_name)
     local url = "file://" .. cached_path
-    local success = modeline.set_modeline(bufnr, url, line_number, false)
-    if success then
-      vim.notify(
-        string.format("Added modeline for %s (cached)", crd_name),
-        vim.log.levels.INFO,
-        { title = "yaml-companion" }
-      )
-    end
+    apply_schema(bufnr, crd_name, url, action, line_number, true)
     return
   end
 
-  vim.notify(
-    string.format("Fetching schema for %s...", crd_name),
-    vim.log.levels.INFO,
-    { title = "yaml-companion" }
-  )
+  notify.info(string.format("Fetching schema for %s...", crd_name))
 
   M.fetch_crd_schema(crd_name, function(result, err)
     if err then
-      vim.notify(err, vim.log.levels.ERROR, { title = "yaml-companion" })
+      notify.error(err)
       return
     end
 
     if not result then
-      vim.notify("No schema returned", vim.log.levels.ERROR, { title = "yaml-companion" })
+      notify.error("No schema returned")
       return
     end
 
     -- Cache the schema
     local cached_path, cache_err = M.cache_schema(crd_name, result.schema)
     if cache_err then
-      vim.notify(
-        "Failed to cache schema: " .. cache_err,
-        vim.log.levels.WARN,
-        { title = "yaml-companion" }
-      )
+      notify.warn("Failed to cache schema: " .. cache_err)
       return
     end
 
-    -- Add modeline with file:// URL
+    -- Apply schema with file:// URL
     local url = "file://" .. cached_path
-    local success = modeline.set_modeline(bufnr, url, line_number, false)
-    if success then
-      vim.notify(
-        string.format("Added modeline for %s", crd_name),
-        vim.log.levels.INFO,
-        { title = "yaml-companion" }
-      )
-    else
-      vim.notify("Failed to add modeline", vim.log.levels.ERROR, { title = "yaml-companion" })
-    end
+    apply_schema(bufnr, crd_name, url, action, line_number, false)
   end)
 end
 
@@ -327,23 +305,14 @@ end
 function M.fetch_from_buffer(bufnr)
   bufnr = bufnr or vim.api.nvim_get_current_buf()
 
-  if not M.is_available() then
-    vim.notify(
-      "kubectl not found. Install kubectl to use cluster CRD features",
-      vim.log.levels.ERROR,
-      { title = "yaml-companion" }
-    )
+  if not require_kubectl() then
     return
   end
 
   -- Check if buffer is valid YAML file
-  local ft = vim.bo[bufnr].filetype
-  if not ft:match("^yaml") then
-    vim.notify(
-      "Current buffer is not a YAML file",
-      vim.log.levels.WARN,
-      { title = "yaml-companion" }
-    )
+  local is_yaml, err = buffer_util.validate_yaml(bufnr)
+  if not is_yaml then
+    notify.warn(err)
     return
   end
 
@@ -355,20 +324,16 @@ function M.fetch_from_buffer(bufnr)
   end, crds)
 
   if #non_core_crds == 0 then
-    vim.notify("No CRDs detected in buffer", vim.log.levels.INFO, { title = "yaml-companion" })
+    notify.info("No CRDs detected in buffer")
     return
   end
 
   -- If single CRD, fetch directly
   if #non_core_crds == 1 then
     local crd = non_core_crds[1]
-    M.get_crd_name(crd.apiGroup, crd.kind, function(crd_name, err)
-      if err then
-        vim.notify(
-          "Failed to determine CRD name: " .. err,
-          vim.log.levels.ERROR,
-          { title = "yaml-companion" }
-        )
+    M.get_crd_name(crd.apiGroup, crd.kind, function(crd_name, get_err)
+      if get_err or not crd_name then
+        notify.error("Failed to determine CRD name: " .. (get_err or "unknown error"))
         return
       end
       M.fetch_and_add_modeline(bufnr, crd_name, crd.line_number)
@@ -377,22 +342,14 @@ function M.fetch_from_buffer(bufnr)
   end
 
   -- Multiple CRDs: let user choose
-  vim.ui.select(non_core_crds, {
-    prompt = "Select CRD to fetch from cluster: ",
-    format_item = function(crd)
-      return string.format("%s (%s)", crd.kind, crd.apiVersion)
-    end,
-  }, function(selection)
+  local cluster_crd_select = require("yaml-companion.ui.cluster_crd_select")
+  cluster_crd_select.select_detected_crd(non_core_crds, function(selection)
     if not selection then
       return
     end
-    M.get_crd_name(selection.apiGroup, selection.kind, function(crd_name, err)
-      if err then
-        vim.notify(
-          "Failed to determine CRD name: " .. err,
-          vim.log.levels.ERROR,
-          { title = "yaml-companion" }
-        )
+    M.get_crd_name(selection.apiGroup, selection.kind, function(crd_name, get_err)
+      if get_err or not crd_name then
+        notify.error("Failed to determine CRD name: " .. (get_err or "unknown error"))
         return
       end
       M.fetch_and_add_modeline(bufnr, crd_name, selection.line_number)
@@ -400,54 +357,43 @@ function M.fetch_from_buffer(bufnr)
   end)
 end
 
---- Browse all CRDs in cluster and select one
-function M.open_crd_select()
-  if not M.is_available() then
-    vim.notify(
-      "kubectl not found. Install kubectl to use cluster CRD features",
-      vim.log.levels.ERROR,
-      { title = "yaml-companion" }
-    )
+--- Fetch CRD and prompt for action selection
+---@param bufnr number
+---@param crd_name string
+function M.fetch_and_add_modeline_with_action_select(bufnr, crd_name)
+  -- Check cache first
+  if M.is_cache_valid(crd_name) then
+    local cached_path = M.get_cache_path(crd_name)
+    local url = "file://" .. cached_path
+    local schema = { name = "[cluster] " .. crd_name, uri = url }
+    schema_action.select_and_apply(bufnr, schema, { cached = true })
     return
   end
 
-  local bufnr = vim.api.nvim_get_current_buf()
+  notify.info(string.format("Fetching schema for %s...", crd_name))
 
-  -- Check if buffer is valid YAML file
-  local ft = vim.bo[bufnr].filetype
-  if not ft:match("^yaml") then
-    vim.notify(
-      "Current buffer is not a YAML file",
-      vim.log.levels.WARN,
-      { title = "yaml-companion" }
-    )
-    return
-  end
-
-  vim.notify("Fetching CRDs from cluster...", vim.log.levels.INFO, { title = "yaml-companion" })
-
-  M.list_all_crds(function(crds, err)
+  M.fetch_crd_schema(crd_name, function(result, err)
     if err then
-      vim.notify("Failed to list CRDs: " .. err, vim.log.levels.ERROR, { title = "yaml-companion" })
+      notify.error(err)
       return
     end
 
-    if not crds or #crds == 0 then
-      vim.notify("No CRDs found in cluster", vim.log.levels.WARN, { title = "yaml-companion" })
+    if not result then
+      notify.error("No schema returned")
       return
     end
 
-    vim.ui.select(crds, {
-      prompt = "Select Cluster CRD: ",
-      format_item = function(crd)
-        return string.format("[cluster] %s", crd.name)
-      end,
-    }, function(selection)
-      if not selection then
-        return
-      end
-      M.fetch_and_add_modeline(bufnr, selection.name, 1)
-    end)
+    -- Cache the schema
+    local cached_path, cache_err = M.cache_schema(crd_name, result.schema)
+    if cache_err then
+      notify.warn("Failed to cache schema: " .. cache_err)
+      return
+    end
+
+    -- Prompt for action
+    local url = "file://" .. cached_path
+    local schema = { name = "[cluster] " .. crd_name, uri = url }
+    schema_action.select_and_apply(bufnr, schema, { cached = false })
   end)
 end
 

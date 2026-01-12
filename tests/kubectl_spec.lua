@@ -103,6 +103,33 @@ describe("kubectl module:", function()
       eq({}, kubectl._api_resources_cache)
     end)
   end)
+
+  describe("construct_crd_name", function()
+    it("should construct CRD name for ArgoCD Application", function()
+      local name = kubectl.construct_crd_name("argoproj.io", "Application")
+      eq("applications.argoproj.io", name)
+    end)
+
+    it("should construct CRD name for cert-manager Certificate", function()
+      local name = kubectl.construct_crd_name("cert-manager.io", "Certificate")
+      eq("certificates.cert-manager.io", name)
+    end)
+
+    it("should construct CRD name for external-secrets ExternalSecret", function()
+      local name = kubectl.construct_crd_name("external-secrets.io", "ExternalSecret")
+      eq("externalsecrets.external-secrets.io", name)
+    end)
+
+    it("should handle uppercase kind", function()
+      local name = kubectl.construct_crd_name("example.com", "MYRESOURCE")
+      eq("myresources.example.com", name)
+    end)
+
+    it("should handle mixed case kind", function()
+      local name = kubectl.construct_crd_name("example.com", "MyCustomResource")
+      eq("mycustomresources.example.com", name)
+    end)
+  end)
 end)
 
 describe("kubectl schema extraction:", function()

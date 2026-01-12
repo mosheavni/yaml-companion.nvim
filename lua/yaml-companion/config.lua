@@ -21,6 +21,8 @@ end
 M.defaults = {
   log_level = "info",
   formatting = true,
+  -- Shared cache directory for all cached data (datree catalog, cluster CRD schemas)
+  cache_dir = nil, -- Override location (default: stdpath("data")/yaml-companion.nvim/)
   builtin_matchers = {
     kubernetes = { enabled = true },
     cloud_init = { enabled = true },
@@ -38,14 +40,13 @@ M.defaults = {
   },
   -- Datree CRD catalog settings
   datree = {
-    cache_ttl = 3600, -- Cache TTL in seconds (0 = no cache)
+    cache_ttl = 3600, -- Cache TTL in seconds (0 = no cache, for both memory and file cache)
     raw_content_base = "https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/",
   },
   -- Cluster CRD fetching configuration
   cluster_crds = {
     enabled = true, -- Enable cluster CRD features
     fallback = false, -- Auto-fallback to cluster when Datree fails
-    cache_dir = nil, -- Override cache location (default: stdpath("data")/yaml-companion.nvim/crd-cache/)
     cache_ttl = 86400, -- Cache expiration in seconds (default: 24h, 0 = never expire)
   },
   -- Key navigation features configuration
@@ -101,7 +102,7 @@ M.defaults = {
 ---@type ConfigOptions
 M.options = vim.deepcopy(M.defaults)
 
-function M.setup(options, on_attach)
+function M.setup(options)
   if options == nil then
     options = {}
   end
@@ -132,7 +133,9 @@ function M.setup(options, on_attach)
     M.options.modeline.validate_urls = true
   end
 
-  M.options.lspconfig.on_attach = add_hook_after(options.lspconfig.on_attach, on_attach)
+  -- Preserve user's on_attach callback if provided
+  -- yaml-companion's setup runs via LspAttach autocmd, not through lspconfig on_attach
+  M.options.lspconfig.on_attach = options.lspconfig.on_attach
 
   local all_schemas = vim.deepcopy(M.options.schemas)
   -- Handle legacy format: { result = { schema1, schema2, ... } }

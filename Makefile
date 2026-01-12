@@ -6,6 +6,7 @@ all: test
 
 lint:
 	stylua -c .
+	selene .
 
 test: prepare lint
 	nvim --headless --noplugin -u tests/minimal_init.vim -c "PlenaryBustedDirectory tests  { minimal_init = './tests/minimal_init.vim' }"
@@ -19,6 +20,7 @@ prepare:
 		chmod +x stylua && \
 		sudo mv stylua /usr/local/bin/; \
 	}
+	@command -v selene >/dev/null || cargo install selene
 	@command -v yaml-language-server >/dev/null || npm install -g yaml-language-server
 
 generate-kubernetes: generate_kubernetes_version generate_kubernetes_resources

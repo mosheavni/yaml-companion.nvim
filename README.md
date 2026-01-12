@@ -8,11 +8,28 @@
 
 ![statusbar](https://github.com/user-attachments/assets/15ea0970-d155-4a58-9d2c-a4a02417f6ba)
 
+## Table of Contents
+
+- [Requirements](#️-requirements)
+- [Features](#-features)
+- [Installation](#-installation)
+- [Configuration](#️-configuration)
+- [Features & Usage](#-features--usage)
+  - [Schema Selection](#schema-selection)
+  - [Key Navigation](#key-navigation)
+  - [Modeline Features](#modeline-features)
+  - [Cluster CRD Integration](#cluster-crd-integration)
+  - [Caching](#caching)
+- [Commands](#️-commands)
+- [Lua API](#lua-api)
+- [Health Check](#-health-check)
+
 ## ⚡️ Requirements
 
 - Neovim 0.11+
 - [yaml-language-server](https://github.com/redhat-developer/yaml-language-server)
 - `kubectl` (optional) - for fetching CRD schemas from your Kubernetes cluster
+- Treesitter YAML parser (optional) - for key navigation features (`:TSInstall yaml`)
 
 ## ✨ Features
 
@@ -33,15 +50,29 @@ Install the plugin with your preferred package manager:
 ```lua
 {
   "mosheavni/yaml-companion.nvim",
+  opts = {
+    -- Add any options here, or leave empty to use the default settings
+    -- lspconfig = {
+    --   settings = { ... }
+    -- },
+  },
+  config = function(_, opts)
+    local cfg = require("yaml-companion").setup(opts)
+    vim.lsp.config("yamlls", cfg)
+    vim.lsp.enable("yamlls")
+  end,
 }
 ```
 
 ## ⚙️ Configuration
 
-**yaml-companion** comes with the following defaults:
+**yaml-companion** comes with the following defaults (pass these to `opts`):
 
 ```lua
 {
+  -- Shared cache directory for all cached data (datree catalog, cluster CRD schemas)
+  cache_dir = nil, -- Override location (default: stdpath("data")/yaml-companion.nvim/)
+
   -- Built in file matchers
   builtin_matchers = {
     -- Detects Kubernetes files based on content
@@ -55,6 +86,46 @@ Install the plugin with your preferred package manager:
       --name = "Kubernetes 1.32.1",
       --uri = "https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/v1.32.1-standalone-strict/all.json",
     --},
+  },
+
+  -- Key navigation features
+  keys = {
+    enabled = true, -- Enable key navigation features (creates :YamlKeys command)
+    include_values = false, -- Show values in quickfix entries
+    max_value_length = 50, -- Truncate long values in display
+  },
+
+  -- Modeline features
+  modeline = {
+    auto_add = {
+      on_attach = false, -- Auto-add modelines when yamlls attaches
+      on_save = false, -- Auto-add modelines before saving
+    },
+    overwrite_existing = false, -- Whether to overwrite existing modelines
+    validate_urls = false, -- Check if schema URL exists (slower)
+    notify = true, -- Show notifications when modelines are added
+  },
+
+  -- Datree CRD catalog settings
+  datree = {
+    cache_ttl = 3600, -- Cache TTL in seconds (0 = never expire, -1 = disable)
+    raw_content_base = "https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/",
+  },
+
+  -- Cluster CRD features
+  cluster_crds = {
+    enabled = true, -- Enable cluster CRD features
+    fallback = false, -- Auto-fallback to cluster when Datree doesn't have schema
+    cache_ttl = 86400, -- Cache expiration in seconds (default: 24h, 0 = never expire)
+  },
+
+  -- Customize which API groups are considered "core" (skipped by CRD detection)
+  core_api_groups = {
+    [""] = true,
+    ["apps"] = true,
+    ["batch"] = true,
+    ["networking.k8s.io"] = true,
+    -- ... add or remove as needed
   },
 
   -- Pass any additional options that will be merged in the final LSP config
@@ -81,24 +152,35 @@ Install the plugin with your preferred package manager:
 }
 ```
 
-### Setup (Neovim 0.11+ required)
+## 🚀 Features & Usage
+
+### Schema Selection
+
+yaml-companion automatically detects and applies JSON schemas to your YAML files. Schemas are resolved from multiple sources in this order:
+
+1. **LSP-provided schema** - from yaml-language-server
+2. **User-defined schemas** - from your config's `schemas` table
+3. **Matcher-detected schemas** - builtin matchers for Kubernetes and cloud-init
+4. **SchemaStore schemas** - from the JSON Schema Store
+
+#### Automatic Detection
+
+**Kubernetes:** Detects Kubernetes manifests by scanning for `kind:` and `apiVersion:` fields. Core resources (Deployments, Services, ConfigMaps, etc.) are matched to the appropriate Kubernetes JSON schema.
+
+**Cloud-init:** Detects cloud-config files by checking for `#cloud-config` header comment.
+
+Both matchers can be disabled via config:
 
 ```lua
-local cfg = require("yaml-companion").setup({
-  -- Add any options here, or leave empty to use the default settings
-  -- lspconfig = {
-  --   settings = { ... }
-  -- },
-})
-vim.lsp.config("yamlls", cfg)
-vim.lsp.enable("yamlls")
+builtin_matchers = {
+  kubernetes = { enabled = false },
+  cloud_init = { enabled = false },
+}
 ```
 
-## 🚀 Usage
+#### Manual Selection
 
-### Select a schema for the current buffer
-
-No mappings included, you need to map it yourself or call it manually:
+Open a picker to manually select from all available schemas:
 
 ```lua
 require("yaml-companion").open_ui_select()
@@ -106,17 +188,9 @@ require("yaml-companion").open_ui_select()
 
 This uses `vim.ui.select` so you can use the picker of your choice (e.g., with [dressing.nvim](https://github.com/stevearc/dressing.nvim)).
 
-## Commands
+#### Statusline Integration
 
-| Command | Description |
-|---------|-------------|
-| `:YamlKeys` | Open quickfix with all YAML keys in the buffer |
-| `:YamlFetchClusterCRD` | Fetch CRD schema from Kubernetes cluster for current buffer |
-| `:YamlBrowseClusterCRDs` | Browse all CRDs in your cluster and select one to fetch |
-
-### Get the schema name for the current buffer
-
-You can show the current schema in your statusline using a function like:
+Show the current schema in your statusline:
 
 ```lua
 local function get_schema()
@@ -128,20 +202,24 @@ local function get_schema()
 end
 ```
 
-## Key Navigation
+---
+
+### Key Navigation
 
 Navigate YAML keys using treesitter. Requires the YAML treesitter parser (`:TSInstall yaml`).
 
-### Quickfix List
+#### Quickfix List
 
 Get all YAML keys in a quickfix list for easy navigation:
 
-```lua
--- Open quickfix with all keys
-require("yaml-companion").get_keys_quickfix()
-
--- Or use the command
+```vim
 :YamlKeys
+```
+
+Or via Lua:
+
+```lua
+require("yaml-companion").get_keys_quickfix()
 ```
 
 Each entry shows the full dotted key path:
@@ -150,7 +228,7 @@ Each entry shows the full dotted key path:
 - `.spec.containers[0].image`
 - `.spec.replicas`
 
-### Get Key at Cursor (API)
+#### Get Key at Cursor
 
 Get the YAML key and value at the current cursor position:
 
@@ -165,7 +243,7 @@ if info then
 end
 ```
 
-This API is useful for building custom integrations. For example, to copy the current key path to clipboard:
+**Example keymaps:**
 
 ```lua
 vim.keymap.set("n", "<leader>yk", function()
@@ -176,7 +254,6 @@ vim.keymap.set("n", "<leader>yk", function()
   end
 end, { desc = "Copy YAML key path" })
 
--- Or to copy the value:
 vim.keymap.set("n", "<leader>yv", function()
   local info = require("yaml-companion").get_key_at_cursor()
   if info and info.value then
@@ -186,45 +263,62 @@ vim.keymap.set("n", "<leader>yv", function()
 end, { desc = "Copy YAML value" })
 ```
 
-### Key Navigation Configuration
+---
 
-```lua
-require("yaml-companion").setup({
-  keys = {
-    enabled = true, -- Enable key navigation features (creates :YamlKeys command)
-    include_values = false, -- Show values in quickfix entries (default: false)
-    max_value_length = 50, -- Truncate long values in display (when include_values = true)
-  },
-})
+### Modeline Features
+
+Modelines are special YAML comments that tell yaml-language-server which schema to use:
+
+```yaml
+# yaml-language-server: $schema=https://example.com/schema.json
+apiVersion: v1
+kind: ConfigMap
 ```
 
-**Note:** Treesitter with YAML parser is required. Check with `:checkhealth yaml-companion`.
+Modelines persist in the file, ensuring everyone editing it gets the same schema support.
 
-## Modeline Features
+#### Browse Datree Schemas
 
-yaml-companion provides tools for working with YAML modelines (`# yaml-language-server: $schema=...`)
-to provide schema support for Custom Resource Definitions (CRDs).
+Browse the [datreeio/CRDs-catalog](https://github.com/datreeio/CRDs-catalog) and select a schema:
 
-### Datree CRD Schema Picker
+```vim
+:YamlBrowseDatreeSchemas
+```
 
-Browse the [datreeio/CRDs-catalog](https://github.com/datreeio/CRDs-catalog) and add a modeline to the current buffer:
+Or via Lua:
 
 ```lua
 require("yaml-companion").open_datree_crd_select()
 ```
 
-This fetches the catalog from GitHub (cached for 1 hour) and presents a picker to select a CRD schema.
-When selected, a modeline is added at the top of your file:
+This opens a picker to select a CRD schema, then asks how to apply it:
 
-```yaml
-# yaml-language-server: $schema=https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/argoproj.io/application_v1alpha1.json
-apiVersion: argoproj.io/v1alpha1
-kind: Application
+- **Add as modeline (persisted in file)** - Adds a comment at the top of your file
+- **Set as LSP schema (session only)** - Sends schema to yamlls for the current buffer
+
+**Direct action (skip the second prompt):**
+
+```vim
+:YamlBrowseDatreeSchemas modeline  " Add as modeline
+:YamlBrowseDatreeSchemas lsp       " Set as LSP schema
 ```
 
-### Auto-detect CRDs
+Or via Lua:
+
+```lua
+require("yaml-companion").open_datree_crd_select("modeline")
+require("yaml-companion").open_datree_crd_select("lsp")
+```
+
+#### Auto-detect CRDs
 
 Detect Custom Resource Definitions in the current buffer and add schema modelines automatically:
+
+```vim
+:YamlAddCRDModelines
+```
+
+Or via Lua:
 
 ```lua
 -- Add modelines for all detected CRDs
@@ -243,114 +337,209 @@ and adds modelines pointing to the appropriate schema in the Datree CRD catalog.
 Core Kubernetes resources (Deployments, Services, ConfigMaps, etc.) are skipped since they're
 handled by the builtin kubernetes matcher.
 
-### Modeline Configuration
+**Enable automatic modeline addition:**
 
 ```lua
-require("yaml-companion").setup({
-  -- Modeline features
-  modeline = {
-    auto_add = {
-      on_attach = false, -- Auto-add modelines when yamlls attaches
-      on_save = false, -- Auto-add modelines before saving
-    },
-    overwrite_existing = false, -- Whether to overwrite existing modelines
-    validate_urls = false, -- Check if schema URL exists (slower)
-    notify = true, -- Show notifications when modelines are added
+modeline = {
+  auto_add = {
+    on_attach = true, -- Auto-add modelines when yamlls attaches
+    on_save = true, -- Auto-add modelines before saving
   },
-
-  -- Datree CRD catalog settings
-  datree = {
-    cache_ttl = 3600, -- Cache catalog for 1 hour (0 = no cache)
-    raw_content_base = "https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/",
-  },
-
-  -- Customize which API groups are considered "core" (skipped by CRD detection)
-  -- These are handled by the builtin kubernetes matcher
-  core_api_groups = {
-    [""] = true,
-    ["apps"] = true,
-    ["batch"] = true,
-    ["networking.k8s.io"] = true,
-    -- ... add or remove as needed
-  },
-})
+}
 ```
 
-## Cluster CRD Schemas
+---
 
-For CRDs that are not available in the Datree catalog (e.g., custom/internal CRDs specific to your cluster),
+### Cluster CRD Integration
+
+For CRDs that are not available in the Datree catalog (e.g., custom/internal CRDs specific to your organization),
 yaml-companion can fetch schemas directly from your Kubernetes cluster using `kubectl`.
 
-### Requirements
+#### Setup
 
-- `kubectl` must be installed and configured with access to your cluster
+Enable cluster CRD features in your config:
+
+```lua
+cluster_crds = {
+  enabled = true,
+}
+```
+
+Requirements:
+
+- `kubectl` must be installed and in your PATH
+- kubectl must be configured with access to your cluster
 - The CRDs must be installed in your cluster
 
-### Usage
+#### Fetch CRD for Current Buffer
 
-**Fetch schema for CRDs detected in current buffer:**
+Fetch the schema for CRDs detected in your current buffer:
 
 ```vim
 :YamlFetchClusterCRD
 ```
 
+Or via Lua:
+
+```lua
+require("yaml-companion").fetch_cluster_crd(0)
+```
+
 This command:
-1. Detects CRDs in your current buffer (by parsing `apiVersion` and `kind`)
-2. Looks up the CRD in your cluster
+
+1. Detects CRDs in your buffer (by parsing `apiVersion` and `kind`)
+2. Looks up the CRD in your cluster via `kubectl get crd`
 3. Extracts the OpenAPI schema from the CRD
 4. Caches it locally
 5. Adds a modeline pointing to the cached schema
 
-**Browse all CRDs in your cluster:**
+#### Browse All Cluster CRDs
+
+Browse and select from all CRDs installed in your cluster:
 
 ```vim
 :YamlBrowseClusterCRDs
 ```
 
-This opens a picker showing all CRDs installed in your cluster. Select one to fetch its schema.
-
-### Programmatic API
+Or via Lua:
 
 ```lua
--- Fetch CRD schema for current buffer
-require("yaml-companion").fetch_cluster_crd()
-
--- Open cluster CRD picker
 require("yaml-companion").open_cluster_crd_select()
 ```
 
-### Configuration
+This opens a picker showing all CRDs in your cluster. After selecting, you choose how to apply it:
 
-```lua
-require("yaml-companion").setup({
-  cluster_crds = {
-    enabled = true,   -- Enable cluster CRD features (default: true)
-    fallback = false, -- Auto-fallback to cluster when Datree doesn't have schema
-    cache_dir = nil,  -- Override cache location (default: stdpath("data")/yaml-companion.nvim/crd-cache/)
-    cache_ttl = 86400, -- Cache expiration in seconds (default: 24h, 0 = never expire)
-  },
-})
+- **Add as modeline (persisted in file)** - Adds a comment at the top of your file
+- **Set as LSP schema (session only)** - Sends schema to yamlls for the current buffer
+
+**Direct action (skip the second prompt):**
+
+```vim
+:YamlBrowseClusterCRDs modeline  " Add as modeline
+:YamlBrowseClusterCRDs lsp       " Set as LSP schema
 ```
 
-### How It Works
+Or via Lua:
 
-1. When you run `:YamlFetchClusterCRD`, the plugin parses your buffer to find `kind:` and `apiVersion:` fields
-2. It maps these to a CRD name (e.g., `Application` with `argoproj.io/v1alpha1` → `applications.argoproj.io`)
-3. It runs `kubectl get crd <name> -o json` to fetch the CRD definition
-4. It extracts the OpenAPI v3 schema from the CRD's stored version
-5. The schema is cached locally at `~/.local/share/nvim/yaml-companion.nvim/crd-cache/<context>/`
-6. A modeline is added to your file: `# yaml-language-server: $schema=file:///path/to/cached/schema.json`
+```lua
+require("yaml-companion").open_cluster_crd_select("modeline")
+require("yaml-companion").open_cluster_crd_select("lsp")
+```
 
-### Auto-Fallback Mode
+#### Auto-Fallback Mode
 
-If you enable `cluster_crds.fallback = true`, the plugin will automatically try to fetch schemas from
-your cluster when the Datree catalog doesn't have them. This works with the `modeline.auto_add.on_attach`
-and `modeline.auto_add.on_save` features.
+Enable automatic fallback to cluster CRD fetching when Datree doesn't have a schema:
 
-**Note:** When `fallback = true`, `modeline.validate_urls` is automatically set to `true` (to check if
-Datree URLs exist before using them). If you explicitly set `validate_urls = false` while `fallback = true`,
-the plugin will throw an error at startup.
+```lua
+cluster_crds = {
+  enabled = true,
+  fallback = true, -- Auto-fallback to cluster when Datree doesn't have schema
+},
+modeline = {
+  auto_add = {
+    on_attach = true, -- or on_save = true
+  },
+}
+```
 
-### Health Check
+With this setup:
 
-Run `:checkhealth yaml-companion` to verify kubectl is available and your cluster is accessible.
+1. When a CRD is detected, yaml-companion first checks the Datree catalog
+2. If Datree doesn't have the schema, it automatically fetches from your cluster
+3. The schema is cached locally for future use
+
+> [!NOTE]
+> When `fallback = true`, `modeline.validate_urls` is automatically set to `true` (to check if
+> Datree URLs exist before using them). If you explicitly set `validate_urls = false` while `fallback = true`,
+> the plugin will throw an error at startup.
+
+---
+
+### Caching
+
+yaml-companion caches data to improve performance and enable offline usage.
+
+#### Cache Location
+
+By default, caches are stored in:
+
+```
+~/.local/share/nvim/yaml-companion.nvim/
+├── crd-cache/          # Cluster CRD schemas (per kubectl context)
+│   └── <context>/
+│       └── <crd-name>.json
+└── datree-catalog.json # Datree CRD catalog index
+```
+
+Override the location:
+
+```lua
+cache_dir = "/path/to/custom/cache",
+```
+
+#### Cache TTL
+
+Configure how long cached data remains valid:
+
+```lua
+datree = {
+  cache_ttl = 3600, -- Datree catalog TTL in seconds (default: 1 hour)
+                    -- 0 = never expire, -1 = disable caching
+},
+cluster_crds = {
+  cache_ttl = 86400, -- Cluster CRD schemas TTL (default: 24 hours)
+                     -- 0 = never expire
+},
+```
+
+#### Clearing Cache
+
+To manually clear the cache, delete the cache directory:
+
+```bash
+rm -rf ~/.local/share/nvim/yaml-companion.nvim/
+```
+
+Or clear only cluster CRD schemas:
+
+```bash
+rm -rf ~/.local/share/nvim/yaml-companion.nvim/crd-cache/
+```
+
+## ⌨️ Commands
+
+| Command                             | Description                                                                          |
+| ----------------------------------- | ------------------------------------------------------------------------------------ |
+| `:YamlKeys`                         | Open quickfix with all YAML keys in the buffer                                       |
+| `:YamlBrowseDatreeSchemas [action]` | Browse Datree CRD catalog. Optional: `modeline` or `lsp` to skip action prompt       |
+| `:YamlAddCRDModelines`              | Detect CRDs in buffer and add schema modelines                                       |
+| `:YamlFetchClusterCRD`              | Fetch CRD schema from Kubernetes cluster for current buffer                          |
+| `:YamlBrowseClusterCRDs [action]`   | Browse all CRDs in your cluster. Optional: `modeline` or `lsp` to skip action prompt |
+
+## Lua API
+
+All public functions are available via `require("yaml-companion")`:
+
+| Function                           | Description                                                                                            |
+| ---------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| `setup(opts)`                      | Initialize the plugin with configuration options                                                       |
+| `get_buf_schema(bufnr)`            | Get the current schema for a buffer                                                                    |
+| `set_buf_schema(bufnr, schema)`    | Set the schema for a buffer                                                                            |
+| `open_ui_select()`                 | Open schema picker (all available schemas)                                                             |
+| `open_datree_crd_select(action?)`  | Browse Datree catalog. If action is nil, prompts user; if `"modeline"` or `"lsp"`, applies directly    |
+| `open_cluster_crd_select(action?)` | Browse CRDs from cluster. If action is nil, prompts user; if `"modeline"` or `"lsp"`, applies directly |
+| `fetch_cluster_crd(bufnr)`         | Fetch CRD schema from cluster for buffer                                                               |
+| `add_crd_modelines(bufnr, opts)`   | Auto-detect CRDs and add modelines                                                                     |
+| `get_modeline(bufnr)`              | Get modeline info from a buffer                                                                        |
+| `get_keys_quickfix(bufnr, opts)`   | Get all YAML keys in quickfix format                                                                   |
+| `get_key_at_cursor()`              | Get key info at current cursor position                                                                |
+| `load_matcher(name)`               | Load a custom matcher                                                                                  |
+
+## 🩺 Health Check
+
+Run `:checkhealth yaml-companion` to verify your setup:
+
+- yaml-language-server availability
+- kubectl availability (for cluster CRD features)
+- Treesitter YAML parser (for key navigation)
+- Cluster connectivity

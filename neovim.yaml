@@ -37,6 +37,9 @@ globals:
   assert.is_false:
     args:
       - type: any
+  assert.is_falsy:
+    args:
+      - type: any
   assert.is_table:
     args:
       - type: any

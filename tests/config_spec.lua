@@ -65,14 +65,14 @@ describe("config module:", function()
 
   describe("setup", function()
     it("should merge user options with defaults", function()
-      config.setup({ log_level = "debug" }, function() end)
+      config.setup({ log_level = "debug" })
       eq("debug", config.options.log_level)
       -- Other defaults should remain
       eq(true, config.options.formatting)
     end)
 
     it("should handle nil options", function()
-      config.setup(nil, function() end)
+      config.setup(nil)
       eq("info", config.options.log_level)
     end)
 
@@ -83,7 +83,7 @@ describe("config module:", function()
             on_attach = true,
           },
         },
-      }, function() end)
+      })
       eq(true, config.options.modeline.auto_add.on_attach)
       -- Other modeline defaults should remain
       eq(false, config.options.modeline.auto_add.on_save)
@@ -94,7 +94,7 @@ describe("config module:", function()
       local schema2 = { name = "Schema B", uri = "https://example.com/schema.json" }
       local schema3 = { name = "Schema C", uri = "https://other.com/schema.json" }
 
-      config.setup({ schemas = { schema1, schema2, schema3 } }, function() end)
+      config.setup({ schemas = { schema1, schema2, schema3 } })
 
       -- Should have only 2 schemas (deduped by URI)
       eq(2, #config.options.schemas)
@@ -103,7 +103,7 @@ describe("config module:", function()
     it("should handle legacy schema format with result key", function()
       local schema1 = { name = "Schema A", uri = "https://example.com/schema.json" }
 
-      config.setup({ schemas = { result = { schema1 } } }, function() end)
+      config.setup({ schemas = { result = { schema1 } } })
 
       eq(1, #config.options.schemas)
       eq("https://example.com/schema.json", config.options.schemas[1].uri)
@@ -112,7 +112,7 @@ describe("config module:", function()
     it("should convert url to uri for legacy compatibility", function()
       local schema = { name = "Schema A", url = "https://example.com/schema.json" }
 
-      config.setup({ schemas = { schema } }, function() end)
+      config.setup({ schemas = { schema } })
 
       eq("https://example.com/schema.json", config.options.schemas[1].uri)
     end)
@@ -122,39 +122,38 @@ describe("config module:", function()
         builtin_matchers = {
           kubernetes = { enabled = false },
         },
-      }, function() end)
+      })
       eq(false, config.options.builtin_matchers.kubernetes.enabled)
     end)
 
-    it("should chain on_attach callbacks", function()
-      local original_called = false
-      local hook_called = false
+    it("should preserve user on_attach callback", function()
+      local user_on_attach_called = false
 
       config.setup({
         lspconfig = {
           on_attach = function()
-            original_called = true
+            user_on_attach_called = true
           end,
         },
-      }, function()
-        hook_called = true
-      end)
+      })
+
+      -- User's on_attach should be preserved in lspconfig options
+      assert.is_not_nil(config.options.lspconfig.on_attach)
 
       -- Simulate calling on_attach
       config.options.lspconfig.on_attach()
 
-      eq(true, original_called)
-      eq(true, hook_called)
+      eq(true, user_on_attach_called)
     end)
 
     it("should set up on_init to send yaml/supportSchemaSelection", function()
-      config.setup({}, function() end)
+      config.setup({})
 
       assert.is_not_nil(config.options.lspconfig.on_init)
     end)
 
     it("should register yaml/schema/store/initialized handler", function()
-      config.setup({}, function() end)
+      config.setup({})
 
       assert.is_not_nil(config.options.lspconfig.handlers)
       assert.is_not_nil(config.options.lspconfig.handlers["yaml/schema/store/initialized"])
@@ -169,7 +168,7 @@ describe("config module:", function()
             },
           },
         },
-      }, function() end)
+      })
 
       eq(false, config.options.lspconfig.settings.yaml.validate)
       -- Other settings should remain from defaults
@@ -183,7 +182,7 @@ describe("config module:", function()
             debounce_text_changes = 300,
           },
         },
-      }, function() end)
+      })
 
       eq(300, config.options.lspconfig.flags.debounce_text_changes)
     end)
@@ -193,7 +192,7 @@ describe("config module:", function()
         cluster_crds = {
           fallback = true,
         },
-      }, function() end)
+      })
 
       eq(true, config.options.cluster_crds.fallback)
       eq(true, config.options.modeline.validate_urls)
@@ -207,7 +206,7 @@ describe("config module:", function()
         modeline = {
           validate_urls = true,
         },
-      }, function() end)
+      })
 
       eq(true, config.options.cluster_crds.fallback)
       eq(true, config.options.modeline.validate_urls)
@@ -222,7 +221,7 @@ describe("config module:", function()
           modeline = {
             validate_urls = false,
           },
-        }, function() end)
+        })
       end)
     end)
 
@@ -231,7 +230,7 @@ describe("config module:", function()
         cluster_crds = {
           fallback = false,
         },
-      }, function() end)
+      })
 
       eq(false, config.options.cluster_crds.fallback)
       eq(false, config.options.modeline.validate_urls)

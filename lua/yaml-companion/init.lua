@@ -7,39 +7,17 @@ M.setup = function(opts)
   local config = require("yaml-companion.config")
   local context = require("yaml-companion.context")
 
-  local function on_attach(client, bufnr)
-    context.setup(bufnr, client)
-
-    -- Auto-add modelines on attach if configured
-    if
-      config.options.modeline
-      and config.options.modeline.auto_add
-      and config.options.modeline.auto_add.on_attach
-    then
-      vim.schedule(function()
-        local crd_detector = require("yaml-companion.modeline.crd_detector")
-        local modeline_opts = { overwrite = config.options.modeline.overwrite_existing }
-        -- Use async version if cluster fallback is enabled
-        if config.options.cluster_crds and config.options.cluster_crds.fallback then
-          crd_detector.add_modelines_with_fallback(bufnr, modeline_opts)
-        else
-          crd_detector.add_modelines(bufnr, modeline_opts)
-        end
-      end)
-    end
-  end
-
-  config.setup(opts, on_attach)
+  config.setup(opts)
   M.ctx = context
 
-  -- Track which clients we've already notified
+  -- Track which clients we've already notified (for schema selection support)
   local notified_clients = {}
 
   -- Create augroup for yaml-companion autocmds
   local augroup = vim.api.nvim_create_augroup("yaml-companion", { clear = true })
 
-  -- Register LspAttach autocmd for native vim.lsp.config/vim.lsp.enable support
-  -- This ensures context.setup is called regardless of how yamlls is started
+  -- Single LspAttach handler for all yamlls setup
+  -- This works for both lspconfig and native vim.lsp.config/vim.lsp.enable
   vim.api.nvim_create_autocmd("LspAttach", {
     group = augroup,
     callback = function(args)
@@ -52,7 +30,27 @@ M.setup = function(opts)
           ---@diagnostic disable-next-line: param-type-mismatch
           client:notify("yaml/supportSchemaSelection", { {} })
         end
-        on_attach(client, args.buf)
+
+        -- Set up buffer context
+        context.setup(args.buf, client)
+
+        -- Auto-add modelines on attach if configured
+        if
+          config.options.modeline
+          and config.options.modeline.auto_add
+          and config.options.modeline.auto_add.on_attach
+        then
+          vim.schedule(function()
+            local crd_detector = require("yaml-companion.modeline.crd_detector")
+            local modeline_opts = { overwrite = config.options.modeline.overwrite_existing }
+            -- Use async version if cluster fallback is enabled
+            if config.options.cluster_crds and config.options.cluster_crds.fallback then
+              crd_detector.add_modelines_with_fallback(args.buf, modeline_opts)
+            else
+              crd_detector.add_modelines(args.buf, modeline_opts)
+            end
+          end)
+        end
       end
     end,
   })
@@ -98,12 +96,43 @@ M.setup = function(opts)
       desc = "Fetch CRD schema from Kubernetes cluster",
     })
 
-    vim.api.nvim_create_user_command("YamlBrowseClusterCRDs", function()
-      require("yaml-companion.kubectl").open_crd_select()
+    vim.api.nvim_create_user_command("YamlBrowseClusterCRDs", function(cmd_opts)
+      local action = cmd_opts.args ~= "" and cmd_opts.args or nil
+      require("yaml-companion.ui.cluster_crd_select").open(action)
     end, {
+      nargs = "?",
+      complete = function()
+        return { "modeline", "lsp" }
+      end,
       desc = "Browse and select CRD schemas from Kubernetes cluster",
     })
   end
+
+  -- Register Datree schema browser command (always available)
+  vim.api.nvim_create_user_command("YamlBrowseDatreeSchemas", function(cmd_opts)
+    local action = cmd_opts.args ~= "" and cmd_opts.args or nil
+    require("yaml-companion.ui.datree_select").open(action)
+  end, {
+    nargs = "?",
+    complete = function()
+      return { "modeline", "lsp" }
+    end,
+    desc = "Browse Datree CRD catalog and choose to add as modeline or set LSP schema",
+  })
+
+  -- Register CRD modeline command (always available)
+  vim.api.nvim_create_user_command("YamlAddCRDModelines", function()
+    local crd_detector = require("yaml-companion.modeline.crd_detector")
+    local modeline_opts = { overwrite = config.options.modeline.overwrite_existing }
+    -- Use async version if cluster fallback is enabled
+    if config.options.cluster_crds and config.options.cluster_crds.fallback then
+      crd_detector.add_modelines_with_fallback(0, modeline_opts)
+    else
+      crd_detector.add_modelines(0, modeline_opts)
+    end
+  end, {
+    desc = "Detect CRDs in buffer and add schema modelines",
+  })
 
   return config.options.lspconfig
 end
@@ -131,12 +160,13 @@ end
 
 --- Opens a vim.ui.select menu to choose a schema
 M.open_ui_select = function()
-  require("yaml-companion.select.ui").open_ui_select()
+  require("yaml-companion.ui.schema_select").open_ui_select()
 end
 
---- Opens a vim.ui.select menu to browse Datree CRD catalog and add modeline
-M.open_datree_crd_select = function()
-  require("yaml-companion.modeline.datree").open_select()
+--- Opens a vim.ui.select menu to browse Datree CRD catalog
+---@param action? SchemaAction Optional action to apply. If nil, prompts user to choose.
+M.open_datree_crd_select = function(action)
+  require("yaml-companion.ui.datree_select").open(action)
 end
 
 --- Detect CRDs in a buffer and add schema modelines for non-core resources
@@ -180,8 +210,9 @@ end
 
 --- Open picker to browse CRDs in cluster
 --- Requires kubectl to be installed and configured
-M.open_cluster_crd_select = function()
-  require("yaml-companion.kubectl").open_crd_select()
+---@param action? SchemaAction Optional action to apply. If nil, prompts user to choose.
+M.open_cluster_crd_select = function(action)
+  require("yaml-companion.ui.cluster_crd_select").open(action)
 end
 
 return M

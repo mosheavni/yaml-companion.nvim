@@ -30,6 +30,9 @@
 
 ---@alias SchemaResult { result: Schema[] }
 
+--- Action type for applying schemas (modeline persists in file, lsp is session-only)
+---@alias SchemaAction "modeline" | "lsp"
+
 ---@class Matcher
 ---@field match fun(bufnr: number): Schema | nil
 ---@field handles fun(): Schema[]
@@ -52,7 +55,6 @@
 ---@class ClusterCrdsConfig
 ---@field enabled boolean Enable cluster CRD features
 ---@field fallback boolean Auto-fallback to cluster when Datree fails
----@field cache_dir string|nil Override cache location (default: stdpath("data")/yaml-companion.nvim/crd-cache/)
 ---@field cache_ttl number Cache expiration in seconds (default: 24h, 0 = never expire)
 
 ---@class ModelineInfo
@@ -69,7 +71,8 @@
 ---@field apiVersion string
 ---@field apiGroup string Extracted from apiVersion (e.g., "argoproj.io")
 ---@field version string Extracted from apiVersion (e.g., "v1alpha1")
----@field line_number number Line where this CRD starts (1-indexed)
+---@field line_number number Line where this CRD document starts (1-indexed)
+---@field end_line number Line where this CRD document ends (1-indexed, before next ---)
 ---@field is_core boolean True if this is a core K8s resource
 
 ---@class AddModelinesResult
@@ -89,6 +92,7 @@
 ---@class ConfigOptions
 ---@field log_level "debug" | "trace" | "info" | "warn" | "error" | "fatal"
 ---@field formatting boolean
+---@field cache_dir string|nil Shared cache directory (default: stdpath("data")/yaml-companion.nvim/)
 ---@field schemas Schema[] | SchemaResult
 ---@field lspconfig table
 ---@field builtin_matchers table
@@ -103,3 +107,33 @@
 ---@field fmt_error fun(fmt: string, ...: any)
 ---@field warn fun(message: string)
 ---@field new fun(config: table, standalone: boolean): Logger
+
+-- Shared utility types
+
+---@class CacheModule
+---@field get_dir fun(subdir: string): string Get cache directory (creates if needed)
+---@field get_path fun(subdir: string, filename: string): string Build cache file path
+---@field is_valid fun(path: string, ttl: number): boolean Check TTL validity
+---@field load_json fun(path: string): table|nil, string|nil Load and parse JSON
+---@field save_json fun(path: string, data: table): boolean, string|nil Serialize and save JSON
+---@field clear fun(path: string) Remove cache file
+
+---@class NotifyModule
+---@field info fun(msg: string) Show info notification
+---@field warn fun(msg: string) Show warning notification
+---@field error fun(msg: string) Show error notification
+---@field debug fun(msg: string) Show debug notification
+
+---@class BufferUtilModule
+---@field validate_yaml fun(bufnr: number): boolean, string|nil Check if buffer is YAML
+---@field current_yaml_buffer fun(): number|nil, string|nil Get current buffer if YAML
+
+---@class ApplySchemaOpts
+---@field line_number? number Line number for modeline insertion (default: 1)
+---@field notify? boolean Whether to show notification (default: true)
+---@field cached? boolean Whether schema came from cache (for messaging)
+
+---@class SchemaActionModule
+---@field ACTIONS table[] Available schema actions
+---@field apply fun(bufnr: number, schema: Schema, action: SchemaAction, opts?: ApplySchemaOpts): boolean Apply schema
+---@field select_and_apply fun(bufnr: number, schema: Schema, opts?: ApplySchemaOpts, callback?: fun(success: boolean, action: SchemaAction|nil)) Prompt and apply

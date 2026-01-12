@@ -1,3 +1,4 @@
+---@diagnostic disable: undefined-field
 local M = {}
 
 --local lsp = require("yaml-companion.lsp.requests")

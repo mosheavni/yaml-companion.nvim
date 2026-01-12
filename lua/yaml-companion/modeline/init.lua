@@ -175,4 +175,82 @@ function M.is_document_separator(line)
   return line:match("^%-%-%-") ~= nil
 end
 
+--- Find modeline with specific URL within document range
+---@param bufnr number
+---@param url string The schema URL to match exactly
+---@param start_line number
+---@param end_line number
+---@return ModelineInfo|nil
+function M.find_modeline_with_url(bufnr, url, start_line, end_line)
+  local lines = M.get_buf_lines(bufnr)
+  if not lines then
+    return nil
+  end
+
+  start_line = math.max(1, start_line)
+  end_line = math.min(#lines, end_line)
+
+  for i = start_line, end_line do
+    local line = lines[i]
+    local existing_url = M.parse_modeline(line)
+    if existing_url and existing_url == url then
+      return {
+        line_number = i,
+        schema_url = existing_url,
+        raw = line,
+      }
+    end
+  end
+
+  return nil
+end
+
+--- Set modeline within a document range, checking for duplicate URLs
+--- Unlike set_modeline(), this checks for the SAME URL to prevent duplicates
+--- while allowing different schemas in the same document
+---@param bufnr number
+---@param schema_url string
+---@param target_line number Where to insert (1-indexed)
+---@param end_line number End of document (for duplicate check)
+---@param overwrite boolean Whether to replace existing modeline with same URL
+---@return boolean success, number offset_delta (1 if line was added, 0 otherwise)
+function M.set_modeline_in_range(bufnr, schema_url, target_line, end_line, overwrite)
+  if not vim.api.nvim_buf_is_valid(bufnr) then
+    return false, 0
+  end
+
+  -- Search for existing modeline with the SAME URL in document range
+  local existing = M.find_modeline_with_url(bufnr, schema_url, target_line, end_line)
+
+  if existing then
+    if overwrite then
+      local modeline_text = M.format_modeline(schema_url)
+      local ok = pcall(
+        vim.api.nvim_buf_set_lines,
+        bufnr,
+        existing.line_number - 1,
+        existing.line_number,
+        false,
+        { modeline_text }
+      )
+      return ok, 0
+    else
+      -- Modeline for this URL already exists - skip
+      return false, 0
+    end
+  end
+
+  -- No existing modeline for this URL, insert new one at target line
+  local modeline_text = M.format_modeline(schema_url)
+  local ok = pcall(
+    vim.api.nvim_buf_set_lines,
+    bufnr,
+    target_line - 1,
+    target_line - 1,
+    false,
+    { modeline_text }
+  )
+  return ok, ok and 1 or 0
+end
+
 return M

@@ -1,26 +1,46 @@
-local modeline = require("yaml-companion.modeline")
 local config = require("yaml-companion.config")
+local cache = require("yaml-companion.cache")
+local notify = require("yaml-companion.util.notify")
 
 local M = {}
-
--- Cache storage
----@type DatreeCache|nil
-M._cache = nil
 
 local GITHUB_TREE_URL =
   "https://api.github.com/repos/datreeio/CRDs-catalog/git/trees/main?recursive=1"
 
---- Check if cache is still valid
+local CACHE_SUBDIR = "datree"
+local CACHE_FILENAME = "datree-catalog.json"
+
+--- Get cache directory path (creates if needed)
+---@return string
+function M.get_cache_dir()
+  return cache.get_dir(CACHE_SUBDIR)
+end
+
+--- Get path to cached catalog file
+---@return string
+function M.get_cache_path()
+  return cache.get_path(CACHE_SUBDIR, CACHE_FILENAME)
+end
+
+--- Check if file cache is still valid
 ---@return boolean
-local function is_cache_valid()
-  if not M._cache then
-    return false
-  end
+local function is_file_cache_valid()
+  local path = M.get_cache_path()
   local ttl = config.options.datree.cache_ttl
-  if ttl <= 0 then
-    return false
-  end
-  return (os.time() - M._cache.timestamp) < ttl
+  return cache.is_valid(path, ttl)
+end
+
+--- Load cache from file
+---@return DatreeCache|nil cache_data, string|nil error
+local function load_file_cache()
+  return cache.load_json(M.get_cache_path())
+end
+
+--- Save cache to file
+---@param cache_data DatreeCache
+---@return boolean success, string|nil error
+local function save_file_cache(cache_data)
+  return cache.save_json(M.get_cache_path(), cache_data)
 end
 
 --- Build a display name from a catalog path
@@ -67,15 +87,24 @@ local function parse_tree_response(json_str)
 end
 
 --- Fetch the catalog from GitHub API (async)
+--- Uses two-tier caching: file -> network
 ---@param callback fun(entries: DatreeCatalogEntry[]|nil, error: string|nil)
 ---@param force_refresh? boolean
 function M.fetch_catalog(callback, force_refresh)
-  -- Return cached entries if valid
-  if not force_refresh and is_cache_valid() then
-    callback(M._cache.entries, nil)
-    return
+  -- 1. Check file cache (avoids network request)
+  if not force_refresh and is_file_cache_valid() then
+    local file_cache, err = load_file_cache()
+    if file_cache and file_cache.entries then
+      callback(file_cache.entries, nil)
+      return
+    end
+    -- If file cache failed to load, continue to network fetch
+    if err then
+      notify.debug("Failed to load cached catalog, fetching from network: " .. err)
+    end
   end
 
+  -- 2. Fetch from network
   local headers_args = {
     "-H",
     "Accept: application/vnd.github+json",
@@ -104,11 +133,15 @@ function M.fetch_catalog(callback, force_refresh)
         return
       end
 
-      -- Update cache
-      M._cache = {
+      -- Save to file cache
+      local cache_data = {
         entries = entries,
         timestamp = os.time(),
       }
+      local save_ok, save_err = save_file_cache(cache_data)
+      if not save_ok and save_err then
+        notify.debug("Failed to save catalog cache: " .. save_err)
+      end
 
       callback(entries, nil)
     end)
@@ -138,67 +171,9 @@ function M.filter_entries(entries, query)
   return filtered
 end
 
---- Open vim.ui.select with Datree CRD catalog
---- Adds modeline to current buffer on selection
-function M.open_select()
-  local bufnr = vim.api.nvim_get_current_buf()
-
-  -- Check if buffer is valid YAML file
-  local ft = vim.bo[bufnr].filetype
-  if not ft:match("^yaml") then
-    vim.notify(
-      "Current buffer is not a YAML file",
-      vim.log.levels.WARN,
-      { title = "yaml-companion" }
-    )
-    return
-  end
-
-  vim.notify("Fetching Datree CRD catalog...", vim.log.levels.INFO, { title = "yaml-companion" })
-
-  M.fetch_catalog(function(entries, err)
-    if err then
-      vim.notify(
-        "Failed to fetch catalog: " .. err,
-        vim.log.levels.ERROR,
-        { title = "yaml-companion" }
-      )
-      return
-    end
-
-    if not entries or #entries == 0 then
-      vim.notify("No schemas found in catalog", vim.log.levels.WARN, { title = "yaml-companion" })
-      return
-    end
-
-    vim.ui.select(entries, {
-      prompt = "Select CRD Schema: ",
-      format_item = function(entry)
-        return entry.name
-      end,
-    }, function(selection)
-      if not selection then
-        vim.notify("Schema selection cancelled", vim.log.levels.INFO, { title = "yaml-companion" })
-        return
-      end
-
-      local success = modeline.set_modeline(bufnr, selection.url, 1, false)
-      if success then
-        vim.notify(
-          "Added schema modeline: " .. selection.name,
-          vim.log.levels.INFO,
-          { title = "yaml-companion" }
-        )
-      else
-        vim.notify("Failed to add modeline", vim.log.levels.ERROR, { title = "yaml-companion" })
-      end
-    end)
-  end)
-end
-
---- Clear the cached catalog
+--- Clear the cached catalog file
 function M.clear_cache()
-  M._cache = nil
+  cache.clear(M.get_cache_path())
 end
 
 --- Health check for Datree integration
@@ -210,6 +185,27 @@ function M.health()
     health.ok("curl is available")
   else
     health.error("curl is not available", { "Install curl to use Datree CRD catalog" })
+  end
+
+  -- Check cache directory
+  local cache_dir = M.get_cache_dir()
+  local stat = vim.uv.fs_stat(cache_dir)
+  if stat then
+    health.ok("Cache directory exists: " .. cache_dir)
+
+    -- Check if file cache exists
+    local cache_path = M.get_cache_path()
+    local cache_stat = vim.uv.fs_stat(cache_path)
+    if cache_stat then
+      local age = os.time() - cache_stat.mtime.sec
+      local ttl = config.options.datree.cache_ttl
+      local status = (ttl == 0 or age < ttl) and "valid" or "expired"
+      health.ok(string.format("Catalog cache: %s (age: %ds, ttl: %ds)", status, age, ttl))
+    else
+      health.info("Catalog cache not yet created")
+    end
+  else
+    health.info("Cache directory will be created: " .. cache_dir)
   end
 end
 

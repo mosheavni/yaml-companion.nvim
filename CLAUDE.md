@@ -100,6 +100,7 @@ definitions. This file provides LSP type hints for the entire codebase.
 For example, when adding a new config section like `cluster_crds`:
 
 1. Add the type class in `meta.lua`:
+
    ```lua
    ---@class ClusterCrdsConfig
    ---@field enabled boolean
@@ -107,10 +108,34 @@ For example, when adding a new config section like `cluster_crds`:
    ```
 
 2. Add it to `ConfigOptions`:
+
    ```lua
    ---@class ConfigOptions
    ---@field cluster_crds ClusterCrdsConfig
    ```
+
+## Documentation
+
+**IMPORTANT:** When adding new features, always document them in `README.md`:
+
+1. Add new commands to the **Commands** table
+2. Add new Lua API functions to the **Lua API** table
+3. Add new configuration options to the **Configuration** section
+4. For major features, add a subsection under **Features & Usage**
+
+The README structure is:
+
+- Requirements / Features / Installation
+- Configuration (with full defaults example)
+- Features & Usage (consolidated feature documentation)
+  - Schema Selection (auto-detection, manual selection, statusline)
+  - Key Navigation (quickfix list, key at cursor)
+  - Modeline Features (Datree browsing, auto-detect CRDs)
+  - Cluster CRD Integration (fetch, browse, auto-fallback)
+  - Caching (locations, TTL, clearing)
+- Commands (quick reference table)
+- Lua API (all public functions)
+- Health Check
 
 ## Generated Files
 

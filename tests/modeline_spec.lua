@@ -140,8 +140,9 @@ describe("modeline utilities:", function()
         "kind: ConfigMap",
       })
 
-      local success = modeline.set_modeline(bufnr, "https://example.com/schema.json")
+      local success, was_modified = modeline.set_modeline(bufnr, "https://example.com/schema.json")
       eq(true, success)
+      eq(true, was_modified)
 
       local lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
       eq("# yaml-language-server: $schema=https://example.com/schema.json", lines[1])
@@ -155,8 +156,10 @@ describe("modeline utilities:", function()
         "kind: ConfigMap",
       })
 
-      local success = modeline.set_modeline(bufnr, "https://example.com/schema.json", 2)
+      local success, was_modified =
+        modeline.set_modeline(bufnr, "https://example.com/schema.json", 2)
       eq(true, success)
+      eq(true, was_modified)
 
       local lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
       eq("---", lines[1])
@@ -170,8 +173,10 @@ describe("modeline utilities:", function()
         "apiVersion: v1",
       })
 
-      local success = modeline.set_modeline(bufnr, "https://new.com/schema.json", 1, false)
+      local success, was_modified =
+        modeline.set_modeline(bufnr, "https://new.com/schema.json", 1, false)
       eq(true, success)
+      eq(false, was_modified)
 
       local lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
       -- Should keep the old modeline
@@ -184,11 +189,21 @@ describe("modeline utilities:", function()
         "apiVersion: v1",
       })
 
-      local success = modeline.set_modeline(bufnr, "https://new.com/schema.json", 1, true)
+      local success, was_modified =
+        modeline.set_modeline(bufnr, "https://new.com/schema.json", 1, true)
       eq(true, success)
+      eq(true, was_modified)
 
       local lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
       eq("# yaml-language-server: $schema=https://new.com/schema.json", lines[1])
+    end)
+
+    it("should return false for invalid buffer", function()
+      local invalid_bufnr = 99999
+      local success, was_modified =
+        modeline.set_modeline(invalid_bufnr, "https://example.com/schema.json")
+      eq(false, success)
+      eq(false, was_modified)
     end)
   end)
 

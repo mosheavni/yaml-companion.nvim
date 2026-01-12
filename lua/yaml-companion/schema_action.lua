@@ -29,12 +29,14 @@ function M.apply(bufnr, schema, action, opts)
   local suffix = opts.cached and " (cached)" or ""
 
   if action == "modeline" then
-    local success = modeline.set_modeline(bufnr, schema.uri, line_number, false)
+    local success, was_modified = modeline.set_modeline(bufnr, schema.uri, line_number, false)
     if should_notify then
-      if success then
+      if not success then
+        notify.error("Failed to add modeline")
+      elseif was_modified then
         notify.info("Added schema modeline: " .. schema.name .. suffix)
       else
-        notify.error("Failed to add modeline")
+        notify.info("Modeline already exists (not modified)")
       end
     end
     return success

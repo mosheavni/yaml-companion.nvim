@@ -75,10 +75,10 @@ end
 ---@param schema_url string
 ---@param line_number? number Where to insert (1-indexed, defaults to 1)
 ---@param overwrite? boolean Whether to replace existing modeline (defaults to false)
----@return boolean success
+---@return boolean success, boolean was_modified (true if modeline was actually added/changed)
 function M.set_modeline(bufnr, schema_url, line_number, overwrite)
   if not vim.api.nvim_buf_is_valid(bufnr) then
-    return false
+    return false, false
   end
 
   line_number = line_number or 1
@@ -98,17 +98,17 @@ function M.set_modeline(bufnr, schema_url, line_number, overwrite)
         false,
         { modeline }
       )
-      return ok
+      return ok, ok
     else
-      -- Don't overwrite, consider it a success (modeline exists)
-      return true
+      -- Don't overwrite, modeline already exists (not an error, but nothing changed)
+      return true, false
     end
   end
 
   -- Insert new modeline
   local ok =
     pcall(vim.api.nvim_buf_set_lines, bufnr, line_number - 1, line_number - 1, false, { modeline })
-  return ok
+  return ok, ok
 end
 
 --- Find all document boundaries in a multi-doc YAML file

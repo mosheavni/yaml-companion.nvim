@@ -464,7 +464,7 @@ yaml-companion caches data to improve performance and enable offline usage.
 
 By default, caches are stored in:
 
-```
+```tree
 ~/.local/share/nvim/yaml-companion.nvim/
 ├── crd-cache/          # Cluster CRD schemas (per kubectl context)
 │   └── <context>/

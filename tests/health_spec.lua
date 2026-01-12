@@ -1,6 +1,3 @@
---# selene: allow(incorrect_standard_library_use)
----@diagnostic disable: undefined-field
-
 describe("health module:", function()
   local health_module
 

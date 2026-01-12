@@ -1,5 +1,3 @@
---# selene: allow(incorrect_standard_library_use)
----@diagnostic disable: undefined-field, need-check-nil
 local eq = assert.are.same
 
 describe("matchers module:", function()

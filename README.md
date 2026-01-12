@@ -147,11 +147,11 @@ Get the YAML key and value at the current cursor position:
 ```lua
 local info = require("yaml-companion").get_key_at_cursor()
 if info then
-  print(info.key)    -- ".spec.containers[0].name"
-  print(info.value)  -- "my-container"
-  print(info.human)  -- ".spec.containers[0].name = my-container"
-  print(info.line)   -- 15
-  print(info.col)    -- 5
+  print(info.key) -- ".spec.containers[0].name"
+  print(info.value) -- "my-container"
+  print(info.human) -- ".spec.containers[0].name = my-container"
+  print(info.line) -- 15
+  print(info.col) -- 5
 end
 ```
 
@@ -181,9 +181,9 @@ end, { desc = "Copy YAML value" })
 ```lua
 require("yaml-companion").setup({
   keys = {
-    enabled = true,          -- Enable key navigation features (creates :YamlKeys command)
-    include_values = false,  -- Show values in quickfix entries (default: false)
-    max_value_length = 50,   -- Truncate long values in display (when include_values = true)
+    enabled = true, -- Enable key navigation features (creates :YamlKeys command)
+    include_values = false, -- Show values in quickfix entries (default: false)
+    max_value_length = 50, -- Truncate long values in display (when include_values = true)
   },
 })
 ```

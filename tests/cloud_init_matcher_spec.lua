@@ -1,5 +1,3 @@
---# selene: allow(incorrect_standard_library_use,undefined_variable)
----@diagnostic disable: undefined-field
 local eq = assert.are.same
 
 local cloud_init = require("yaml-companion.builtin.cloud_init")

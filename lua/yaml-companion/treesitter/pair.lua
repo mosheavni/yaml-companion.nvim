@@ -34,6 +34,7 @@ local function get_sequence_index(sequence_node, target_node)
     local child_type = child:type()
     if child_type == "block_sequence_item" or child_type == "flow_sequence_item" then
       -- Check if target_node is a descendant of this sequence item
+      ---@type TSNode|nil
       local check = target_node
       while check do
         if check:id() == child:id() then
@@ -91,6 +92,7 @@ end
 ---@return string path The full dotted key path (e.g., "root.parent.child" or "items[0].name")
 M.build_key_path = function(pair_node, bufnr)
   local parts = {}
+  ---@type TSNode|nil
   local current = pair_node
 
   while current do

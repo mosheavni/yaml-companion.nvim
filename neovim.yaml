@@ -13,6 +13,34 @@ globals:
     args:
       - type: any
       - type: any
+  assert.is_true:
+    args:
+      - type: any
+      - type: string
+        required: false
+  assert.is_not_nil:
+    args:
+      - type: any
+      - type: string
+        required: false
+  assert.is_boolean:
+    args:
+      - type: any
+  assert.is_truthy:
+    args:
+      - type: any
+  assert.is_false:
+    args:
+      - type: any
+  assert.is_table:
+    args:
+      - type: any
+  assert.is_function:
+    args:
+      - type: any
+  SetupYamlls:
+    args:
+      - type: any
   after_each:
     args:
       - type: function
@@ -27,3 +55,6 @@ globals:
     args:
       - type: string
       - type: function
+  pending:
+    args:
+      - type: string

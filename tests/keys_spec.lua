@@ -1,5 +1,3 @@
---# selene: allow(incorrect_standard_library_use)
----@diagnostic disable: undefined-field
 local eq = assert.are.same
 
 local keys = require("yaml-companion.keys")
@@ -26,7 +24,7 @@ describe("keys navigation:", function()
   describe("quickfix", function()
     it("should populate quickfix with all keys", function()
       if not has_yaml_parser then
-        pending("YAML treesitter parser not installed")
+        pending("YAML treesitter parser not installed", function() end)
         return
       end
       vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, {
@@ -43,7 +41,7 @@ describe("keys navigation:", function()
 
     it("should not include values by default", function()
       if not has_yaml_parser then
-        pending("YAML treesitter parser not installed")
+        pending("YAML treesitter parser not installed", function() end)
         return
       end
       vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, {
@@ -57,7 +55,7 @@ describe("keys navigation:", function()
 
     it("should set correct line numbers", function()
       if not has_yaml_parser then
-        pending("YAML treesitter parser not installed")
+        pending("YAML treesitter parser not installed", function() end)
         return
       end
       vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, {
@@ -72,7 +70,7 @@ describe("keys navigation:", function()
 
     it("should set buffer number", function()
       if not has_yaml_parser then
-        pending("YAML treesitter parser not installed")
+        pending("YAML treesitter parser not installed", function() end)
         return
       end
       vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, {
@@ -85,7 +83,7 @@ describe("keys navigation:", function()
 
     it("should handle nested keys", function()
       if not has_yaml_parser then
-        pending("YAML treesitter parser not installed")
+        pending("YAML treesitter parser not installed", function() end)
         return
       end
       vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, {
@@ -118,7 +116,7 @@ describe("keys navigation:", function()
 
     it("should return empty when parser not available", function()
       if has_yaml_parser then
-        pending("skipped - parser is available")
+        pending("skipped - parser is available", function() end)
         return
       end
       vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, {
@@ -131,7 +129,7 @@ describe("keys navigation:", function()
 
     it("should handle long values without truncation when values disabled", function()
       if not has_yaml_parser then
-        pending("YAML treesitter parser not installed")
+        pending("YAML treesitter parser not installed", function() end)
         return
       end
       local long_value = string.rep("x", 100)
@@ -146,7 +144,7 @@ describe("keys navigation:", function()
 
     it("should show just key path for keys without scalar values", function()
       if not has_yaml_parser then
-        pending("YAML treesitter parser not installed")
+        pending("YAML treesitter parser not installed", function() end)
         return
       end
       vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, {
@@ -165,7 +163,7 @@ describe("keys navigation:", function()
   describe("at_cursor", function()
     it("should return key info at cursor", function()
       if not has_yaml_parser then
-        pending("YAML treesitter parser not installed")
+        pending("YAML treesitter parser not installed", function() end)
         return
       end
       vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, {
@@ -190,7 +188,7 @@ describe("keys navigation:", function()
 
     it("should return nil when parser not available", function()
       if has_yaml_parser then
-        pending("skipped - parser is available")
+        pending("skipped - parser is available", function() end)
         return
       end
       vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, {
@@ -203,7 +201,7 @@ describe("keys navigation:", function()
 
     it("should return nested key path", function()
       if not has_yaml_parser then
-        pending("YAML treesitter parser not installed")
+        pending("YAML treesitter parser not installed", function() end)
         return
       end
       vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, {
@@ -219,7 +217,7 @@ describe("keys navigation:", function()
 
     it("should return correct line number", function()
       if not has_yaml_parser then
-        pending("YAML treesitter parser not installed")
+        pending("YAML treesitter parser not installed", function() end)
         return
       end
       vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, {

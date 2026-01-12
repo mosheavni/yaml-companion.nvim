@@ -1,4 +1,3 @@
---# selene: allow(undefined_variable)
 local eq = assert.are.same
 
 local function wait_until(fn)

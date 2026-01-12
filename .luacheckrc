@@ -16,7 +16,15 @@ files["tests/**/*.lua"] = {
     "it",
     "before_each",
     "after_each",
-    "assert",
+    "pending",
     "SetupYamlls", -- defined in minimal_init.vim
+    assert = {
+      fields = {
+        are = { fields = { same = {} } },
+        is_true = {},
+        is_not_nil = {},
+        is_boolean = {},
+      },
+    },
   },
 }

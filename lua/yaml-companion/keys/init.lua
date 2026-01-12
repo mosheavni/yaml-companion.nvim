@@ -31,6 +31,7 @@ M.quickfix = function(bufnr, opts)
   for _, key_info in ipairs(keys) do
     local text = key_info.key
     if include_values and key_info.value then
+      ---@type string
       local value = key_info.value
       if #value > max_len then
         value = value:sub(1, max_len) .. "..."

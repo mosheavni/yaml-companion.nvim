@@ -1,5 +1,3 @@
---# selene: allow(undefined_variable, incorrect_standard_library_use)
----@diagnostic disable: undefined-field
 local eq = assert.are.same
 
 local detector = require("yaml-companion.modeline.crd_detector")

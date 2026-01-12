@@ -17,9 +17,14 @@ M.setup = function(opts)
       and config.options.modeline.auto_add.on_attach
     then
       vim.schedule(function()
-        require("yaml-companion.modeline.crd_detector").add_modelines(bufnr, {
-          overwrite = config.options.modeline.overwrite_existing,
-        })
+        local crd_detector = require("yaml-companion.modeline.crd_detector")
+        local modeline_opts = { overwrite = config.options.modeline.overwrite_existing }
+        -- Use async version if cluster fallback is enabled
+        if config.options.cluster_crds and config.options.cluster_crds.fallback then
+          crd_detector.add_modelines_with_fallback(bufnr, modeline_opts)
+        else
+          crd_detector.add_modelines(bufnr, modeline_opts)
+        end
       end)
     end
   end
@@ -62,9 +67,14 @@ M.setup = function(opts)
       group = augroup,
       pattern = { "*.yaml", "*.yml" },
       callback = function(args)
-        require("yaml-companion.modeline.crd_detector").add_modelines(args.buf, {
-          overwrite = config.options.modeline.overwrite_existing,
-        })
+        local crd_detector = require("yaml-companion.modeline.crd_detector")
+        local modeline_opts = { overwrite = config.options.modeline.overwrite_existing }
+        -- Use async version if cluster fallback is enabled
+        if config.options.cluster_crds and config.options.cluster_crds.fallback then
+          crd_detector.add_modelines_with_fallback(args.buf, modeline_opts)
+        else
+          crd_detector.add_modelines(args.buf, modeline_opts)
+        end
       end,
     })
   end
@@ -77,6 +87,21 @@ M.setup = function(opts)
       require("yaml-companion.keys").quickfix(0, { open = true })
     end, {
       desc = "List all YAML keys in quickfix",
+    })
+  end
+
+  -- Register cluster CRD commands if feature is enabled
+  if config.options.cluster_crds and config.options.cluster_crds.enabled then
+    vim.api.nvim_create_user_command("YamlFetchClusterCRD", function()
+      require("yaml-companion.kubectl").fetch_from_buffer()
+    end, {
+      desc = "Fetch CRD schema from Kubernetes cluster",
+    })
+
+    vim.api.nvim_create_user_command("YamlBrowseClusterCRDs", function()
+      require("yaml-companion.kubectl").open_crd_select()
+    end, {
+      desc = "Browse and select CRD schemas from Kubernetes cluster",
     })
   end
 
@@ -144,6 +169,19 @@ end
 ---@return YamlKeyInfo|nil info Key info at cursor, or nil if not found
 M.get_key_at_cursor = function()
   return require("yaml-companion.keys").at_cursor()
+end
+
+--- Fetch CRD schema from cluster for current buffer
+--- Requires kubectl to be installed and configured
+---@param bufnr? number Buffer number (defaults to current buffer)
+M.fetch_cluster_crd = function(bufnr)
+  require("yaml-companion.kubectl").fetch_from_buffer(bufnr)
+end
+
+--- Open picker to browse CRDs in cluster
+--- Requires kubectl to be installed and configured
+M.open_cluster_crd_select = function()
+  require("yaml-companion.kubectl").open_crd_select()
 end
 
 return M

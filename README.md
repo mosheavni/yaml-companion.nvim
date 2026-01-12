@@ -12,6 +12,7 @@
 
 - Neovim 0.11+
 - [yaml-language-server](https://github.com/redhat-developer/yaml-language-server)
+- `kubectl` (optional) - for fetching CRD schemas from your Kubernetes cluster
 
 ## ✨ Features
 
@@ -20,6 +21,7 @@
 - Extendable autodetection + Schema Store support
 - CRD modeline support with [Datree CRD catalog](https://github.com/datreeio/CRDs-catalog) integration
 - Auto-detect Custom Resource Definitions and add schema modelines
+- Fetch CRD schemas directly from your Kubernetes cluster (for CRDs not in Datree)
 - Key navigation: Browse all YAML keys in quickfix, get key/value at cursor
 
 ## 📦 Installation
@@ -103,6 +105,14 @@ require("yaml-companion").open_ui_select()
 ```
 
 This uses `vim.ui.select` so you can use the picker of your choice (e.g., with [dressing.nvim](https://github.com/stevearc/dressing.nvim)).
+
+## Commands
+
+| Command | Description |
+|---------|-------------|
+| `:YamlKeys` | Open quickfix with all YAML keys in the buffer |
+| `:YamlFetchClusterCRD` | Fetch CRD schema from Kubernetes cluster for current buffer |
+| `:YamlBrowseClusterCRDs` | Browse all CRDs in your cluster and select one to fetch |
 
 ### Get the schema name for the current buffer
 
@@ -265,3 +275,82 @@ require("yaml-companion").setup({
   },
 })
 ```
+
+## Cluster CRD Schemas
+
+For CRDs that are not available in the Datree catalog (e.g., custom/internal CRDs specific to your cluster),
+yaml-companion can fetch schemas directly from your Kubernetes cluster using `kubectl`.
+
+### Requirements
+
+- `kubectl` must be installed and configured with access to your cluster
+- The CRDs must be installed in your cluster
+
+### Usage
+
+**Fetch schema for CRDs detected in current buffer:**
+
+```vim
+:YamlFetchClusterCRD
+```
+
+This command:
+1. Detects CRDs in your current buffer (by parsing `apiVersion` and `kind`)
+2. Looks up the CRD in your cluster
+3. Extracts the OpenAPI schema from the CRD
+4. Caches it locally
+5. Adds a modeline pointing to the cached schema
+
+**Browse all CRDs in your cluster:**
+
+```vim
+:YamlBrowseClusterCRDs
+```
+
+This opens a picker showing all CRDs installed in your cluster. Select one to fetch its schema.
+
+### Programmatic API
+
+```lua
+-- Fetch CRD schema for current buffer
+require("yaml-companion").fetch_cluster_crd()
+
+-- Open cluster CRD picker
+require("yaml-companion").open_cluster_crd_select()
+```
+
+### Configuration
+
+```lua
+require("yaml-companion").setup({
+  cluster_crds = {
+    enabled = true,   -- Enable cluster CRD features (default: true)
+    fallback = false, -- Auto-fallback to cluster when Datree doesn't have schema
+    cache_dir = nil,  -- Override cache location (default: stdpath("data")/yaml-companion.nvim/crd-cache/)
+    cache_ttl = 86400, -- Cache expiration in seconds (default: 24h, 0 = never expire)
+  },
+})
+```
+
+### How It Works
+
+1. When you run `:YamlFetchClusterCRD`, the plugin parses your buffer to find `kind:` and `apiVersion:` fields
+2. It maps these to a CRD name (e.g., `Application` with `argoproj.io/v1alpha1` → `applications.argoproj.io`)
+3. It runs `kubectl get crd <name> -o json` to fetch the CRD definition
+4. It extracts the OpenAPI v3 schema from the CRD's stored version
+5. The schema is cached locally at `~/.local/share/nvim/yaml-companion.nvim/crd-cache/<context>/`
+6. A modeline is added to your file: `# yaml-language-server: $schema=file:///path/to/cached/schema.json`
+
+### Auto-Fallback Mode
+
+If you enable `cluster_crds.fallback = true`, the plugin will automatically try to fetch schemas from
+your cluster when the Datree catalog doesn't have them. This works with the `modeline.auto_add.on_attach`
+and `modeline.auto_add.on_save` features.
+
+**Note:** When `fallback = true`, `modeline.validate_urls` is automatically set to `true` (to check if
+Datree URLs exist before using them). If you explicitly set `validate_urls = false` while `fallback = true`,
+the plugin will throw an error at startup.
+
+### Health Check
+
+Run `:checkhealth yaml-companion` to verify kubectl is available and your cluster is accessible.

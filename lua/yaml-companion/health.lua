@@ -7,6 +7,7 @@ local plugins = {}
 local binaries = {
   { bin = "yaml-language-server", optional = false },
   { bin = "curl", optional = true, info = "Required for Datree CRD catalog" },
+  { bin = "kubectl", optional = true, info = "Required for cluster CRD schema fetching" },
 }
 
 local binary_installed = function(binary)
@@ -67,6 +68,10 @@ M.check = function()
   -- Key navigation features health check
   health.start("Key Navigation Features")
   require("yaml-companion.keys").health()
+
+  -- Cluster CRD features health check
+  health.start("Cluster CRD Features")
+  require("yaml-companion.kubectl").health()
 end
 
 return M

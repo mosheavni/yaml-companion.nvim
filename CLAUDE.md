@@ -91,6 +91,27 @@ Tests use Plenary's busted-style test framework. Test files are in `tests/` dire
 
 Tests require `plenary.nvim` cloned as a sibling to this repo (done by `make prepare`). Neovim 0.11+ is required for `vim.lsp.config` support.
 
+## Type Definitions
+
+**IMPORTANT:** When adding new configuration options or data structures, always
+update `lua/yaml-companion/meta.lua` with the corresponding `@class` type
+definitions. This file provides LSP type hints for the entire codebase.
+
+For example, when adding a new config section like `cluster_crds`:
+
+1. Add the type class in `meta.lua`:
+   ```lua
+   ---@class ClusterCrdsConfig
+   ---@field enabled boolean
+   ---@field fallback boolean
+   ```
+
+2. Add it to `ConfigOptions`:
+   ```lua
+   ---@class ConfigOptions
+   ---@field cluster_crds ClusterCrdsConfig
+   ```
+
 ## Generated Files
 
 These files are auto-generated and should not be manually edited:

@@ -187,5 +187,54 @@ describe("config module:", function()
 
       eq(300, config.options.lspconfig.flags.debounce_text_changes)
     end)
+
+    it("should auto-enable validate_urls when cluster_crds.fallback is true", function()
+      config.setup({
+        cluster_crds = {
+          fallback = true,
+        },
+      }, function() end)
+
+      eq(true, config.options.cluster_crds.fallback)
+      eq(true, config.options.modeline.validate_urls)
+    end)
+
+    it("should allow validate_urls=true with fallback=true", function()
+      config.setup({
+        cluster_crds = {
+          fallback = true,
+        },
+        modeline = {
+          validate_urls = true,
+        },
+      }, function() end)
+
+      eq(true, config.options.cluster_crds.fallback)
+      eq(true, config.options.modeline.validate_urls)
+    end)
+
+    it("should error when fallback=true and validate_urls explicitly set to false", function()
+      assert.has_error(function()
+        config.setup({
+          cluster_crds = {
+            fallback = true,
+          },
+          modeline = {
+            validate_urls = false,
+          },
+        }, function() end)
+      end)
+    end)
+
+    it("should not auto-enable validate_urls when fallback is false", function()
+      config.setup({
+        cluster_crds = {
+          fallback = false,
+        },
+      }, function() end)
+
+      eq(false, config.options.cluster_crds.fallback)
+      eq(false, config.options.modeline.validate_urls)
+    end)
   end)
 end)

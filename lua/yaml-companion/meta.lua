@@ -49,6 +49,12 @@
 ---@field cache_ttl number Cache TTL in seconds (0 = no cache)
 ---@field raw_content_base string Base URL for raw content
 
+---@class ClusterCrdsConfig
+---@field enabled boolean Enable cluster CRD features
+---@field fallback boolean Auto-fallback to cluster when Datree fails
+---@field cache_dir string|nil Override cache location (default: stdpath("data")/yaml-companion.nvim/crd-cache/)
+---@field cache_ttl number Cache expiration in seconds (default: 24h, 0 = never expire)
+
 ---@class ModelineInfo
 ---@field line_number number Line number where modeline is (1-indexed)
 ---@field schema_url string The schema URL from the modeline
@@ -88,6 +94,7 @@
 ---@field builtin_matchers table
 ---@field modeline ModelineConfig Modeline features configuration
 ---@field datree DatreeConfig Datree CRD catalog settings
+---@field cluster_crds ClusterCrdsConfig Cluster CRD fetching configuration
 ---@field core_api_groups table<string, boolean> Core API groups to skip
 ---@field keys KeysConfig Key navigation features configuration
 

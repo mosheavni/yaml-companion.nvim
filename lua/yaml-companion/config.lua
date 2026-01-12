@@ -41,6 +41,13 @@ M.defaults = {
     cache_ttl = 3600, -- Cache TTL in seconds (0 = no cache)
     raw_content_base = "https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/",
   },
+  -- Cluster CRD fetching configuration
+  cluster_crds = {
+    enabled = true, -- Enable cluster CRD features
+    fallback = false, -- Auto-fallback to cluster when Datree fails
+    cache_dir = nil, -- Override cache location (default: stdpath("data")/yaml-companion.nvim/crd-cache/)
+    cache_ttl = 86400, -- Cache expiration in seconds (default: 24h, 0 = never expire)
+  },
   -- Key navigation features configuration
   keys = {
     enabled = true, -- Enable key navigation features
@@ -103,7 +110,27 @@ function M.setup(options, on_attach)
     options.lspconfig = {}
   end
 
+  ---@type ConfigOptions
   M.options = vim.tbl_deep_extend("force", M.options, options or {})
+
+  -- Validate cluster_crds.fallback and modeline.validate_urls configuration
+  if M.options.cluster_crds and M.options.cluster_crds.fallback then
+    -- Check if user explicitly set validate_urls to false
+    local user_explicitly_set_validate_urls = options.modeline
+      and options.modeline.validate_urls ~= nil
+    local user_set_validate_urls_false = user_explicitly_set_validate_urls
+      and options.modeline.validate_urls == false
+
+    if user_set_validate_urls_false then
+      error(
+        "yaml-companion: Invalid configuration - cluster_crds.fallback=true requires "
+          .. "modeline.validate_urls=true. Cannot explicitly set validate_urls=false when fallback is enabled."
+      )
+    end
+
+    -- Auto-enable validate_urls when fallback is true
+    M.options.modeline.validate_urls = true
+  end
 
   M.options.lspconfig.on_attach = add_hook_after(options.lspconfig.on_attach, on_attach)
 

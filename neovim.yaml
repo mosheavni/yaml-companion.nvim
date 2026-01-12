@@ -26,6 +26,11 @@ globals:
   assert.is_boolean:
     args:
       - type: any
+  assert.has_error:
+    args:
+      - type: function
+      - type: string
+        required: false
   assert.is_truthy:
     args:
       - type: any
@@ -58,3 +63,5 @@ globals:
   pending:
     args:
       - type: string
+      - type: function
+        required: false

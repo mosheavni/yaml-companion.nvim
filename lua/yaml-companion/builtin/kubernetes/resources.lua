@@ -20,6 +20,8 @@ return {
   "ClusterRoleBinding",
   "ClusterRoleBindingList",
   "ClusterRoleList",
+  "ClusterTrustBundle",
+  "ClusterTrustBundleList",
   "ComponentStatus",
   "ComponentStatusList",
   "ConfigMap",

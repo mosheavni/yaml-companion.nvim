@@ -24,6 +24,7 @@ jobs:
         id: cpr
         with:
           token: ${{ steps.generate-token.outputs.token }}
+          title: "chore(ci): Update Kubernetes resources"
           commit-message: |
             chore(ci): Update Kubernetes resources
 

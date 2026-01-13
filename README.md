@@ -6,8 +6,8 @@
 [![Lint](https://github.com/mosheavni/yaml-companion.nvim/actions/workflows/super-linter.yml/badge.svg)](https://github.com/mosheavni/yaml-companion.nvim/actions/workflows/super-linter.yml)
 [![Neovim](https://img.shields.io/badge/Neovim-0.11+-blueviolet.svg?logo=neovim)](https://neovim.io)
 
-![statusbar](https://github.com/user-attachments/assets/15ea0970-d155-4a58-9d2c-a4a02417f6ba)
-![schema-auto-detect](https://github.com/user-attachments/assets/4e06db3a-53db-41a6-81d7-aa02a8dd881e)
+![completion](https://github.com/user-attachments/assets/40509084-c69a-4c8d-8380-9149b439b7ad)
+![schema-auto-detect](https://github.com/user-attachments/assets/20b35aa4-43d6-4615-b624-9a057dd4ab33)
 
 ## Table of Contents
 
@@ -24,6 +24,7 @@
 - [Commands](#️-commands)
 - [Lua API](#lua-api)
 - [Health Check](#-health-check)
+- [History](#-history)
 
 ## ⚡️ Requirements
 
@@ -544,3 +545,7 @@ Run `:checkhealth yaml-companion` to verify your setup:
 - kubectl availability (for cluster CRD features)
 - Treesitter YAML parser (for key navigation)
 - Cluster connectivity
+
+## 📜 History
+
+This repository was originally forked from [someone-stole-my-name/yaml-companion.nvim](https://github.com/someone-stole-my-name/yaml-companion.nvim). It has since been unforked and is now maintained independently. The original commit history has been preserved.

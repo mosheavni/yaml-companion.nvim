@@ -9,18 +9,28 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - name: Install Perl dependencies
         run: sudo apt-get update && sudo apt-get install -y libjson-xs-perl libwww-perl
       - run: cd "$GITHUB_WORKSPACE" && make generate-kubernetes
-      - uses: tibdex/github-app-token@v1
+
+      - uses: actions/create-github-app-token@v2
         id: generate-token
         with:
-          app_id: ${{ secrets.APP_ID }}
-          private_key: ${{ secrets.APP_PRIVATE_KEY }}
+          app-id: ${{ secrets.APP_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+
       - uses: peter-evans/create-pull-request@v8
         id: cpr
         with:
           token: ${{ steps.generate-token.outputs.token }}
+          commit-message: |
+            chore(ci): Update Kubernetes resources
+
+            [skip ci]
+          branch: "ci-update-k8s-resources-${{ github.run_id }}"
+          delete-branch: true
+
       - name: Pull Request Automerge
         if: ${{ steps.cpr.outputs.pull-request-number }}
         run: gh pr merge --merge --auto "${{ steps.cpr.outputs.pull-request-number }}"

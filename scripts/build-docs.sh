@@ -47,9 +47,16 @@ PANVIMDOC_DIR=$(mktemp -d)
 trap "rm -rf $PANVIMDOC_DIR $API_DOCS" EXIT
 git clone --depth 1 --quiet https://github.com/kdheepak/panvimdoc.git "$PANVIMDOC_DIR"
 
-# Create a temporary README with emojis stripped (they render poorly in vimdoc)
+# Create a temporary README with:
+# - Emojis stripped (they render poorly in vimdoc)
+# - Main heading simplified to avoid duplicate "yaml-companion-yaml-companion" tags
+# - Table of Contents section removed (panvimdoc generates its own)
 README_CLEAN=$(mktemp).md
-perl -CSD -pe 's/[\x{1F300}-\x{1FAF8}\x{2600}-\x{26FF}\x{2700}-\x{27BF}\x{2328}\x{23CF}\x{23E9}-\x{23F3}\x{23F8}-\x{23FA}]\x{FE0F}?//g' README.md > "$README_CLEAN"
+perl -CSD -0777 -pe '
+  s/[\x{1F300}-\x{1FAF8}\x{2600}-\x{26FF}\x{2700}-\x{27BF}\x{2328}\x{23CF}\x{23E9}-\x{23F3}\x{23F8}-\x{23FA}]\x{FE0F}?//g;
+  s/^# yaml-companion\.nvim$/# Introduction/m;
+  s/^## Table of Contents\n(?:.*\n)*?(?=^## |\z)//m;
+' README.md > "$README_CLEAN"
 
 # Run panvimdoc
 pandoc \
@@ -70,6 +77,11 @@ pandoc \
   -o doc/yaml-companion.txt
 
 rm -f "$README_CLEAN"
+
+# Post-process the generated vimdoc:
+# - Simplify tag names by removing redundant "-introduction" from tags
+# - Flatten TOC numbering (convert nested "  - Item" to numbered list)
+perl scripts/fix-vimdoc-toc.pl doc/yaml-companion.txt
 
 # =============================================================================
 # 3. Append API docs to the main vimdoc

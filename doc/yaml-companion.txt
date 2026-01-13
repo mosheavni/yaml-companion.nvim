@@ -3,21 +3,20 @@
 ==============================================================================
 Table of Contents                           *yaml-companion-table-of-contents*
 
-1. yaml-companion.nvim                    |yaml-companion-yaml-companion.nvim|
-  - Table of Contents   |yaml-companion-yaml-companion.nvim-table-of-contents|
-  - Requirements             |yaml-companion-yaml-companion.nvim-requirements|
-  - Features                     |yaml-companion-yaml-companion.nvim-features|
-  - Installation             |yaml-companion-yaml-companion.nvim-installation|
-  - Configuration           |yaml-companion-yaml-companion.nvim-configuration|
-  - Features & Usage     |yaml-companion-yaml-companion.nvim-features-&-usage|
-  - Commands                     |yaml-companion-yaml-companion.nvim-commands|
-  - Lua API                       |yaml-companion-yaml-companion.nvim-lua-api|
-  - Health Check             |yaml-companion-yaml-companion.nvim-health-check|
-  - History                       |yaml-companion-yaml-companion.nvim-history|
-2. Links                                                |yaml-companion-links|
+ 1. Introduction                                            |yaml-companion-introduction|
+ 2. Requirements                                            |yaml-companion-requirements|
+ 3. Features                                                |yaml-companion-features|
+ 4. Installation                                            |yaml-companion-installation|
+ 5. Configuration                                           |yaml-companion-configuration|
+ 6. Features & Usage                                        |yaml-companion-features-&-usage|
+ 7. Commands                                                |yaml-companion-commands|
+ 8. Lua API                                                 |yaml-companion-lua-api|
+ 9. Health Check                                            |yaml-companion-health-check|
+10. History                                                 |yaml-companion-history|
+11. Links                                                   |yaml-companion-links|
 
 ==============================================================================
-1. yaml-companion.nvim                    *yaml-companion-yaml-companion.nvim*
+1. Introduction                                  *yaml-companion-introduction*
 
 <https://github.com/mosheavni/yaml-companion.nvim/actions/workflows/main.yml>
 <https://github.com/mosheavni/yaml-companion.nvim/actions/workflows/super-linter.yml>
@@ -26,25 +25,7 @@ Table of Contents                           *yaml-companion-table-of-contents*
 
 
 
-TABLE OF CONTENTS       *yaml-companion-yaml-companion.nvim-table-of-contents*
-
-- |yaml-companion-requirements|
-- |yaml-companion-features|
-- |yaml-companion-installation|
-- |yaml-companion-configuration|
-- |yaml-companion-features-&-usage|
-    - |yaml-companion-schema-selection|
-    - |yaml-companion-key-navigation|
-    - |yaml-companion-modeline-features|
-    - |yaml-companion-cluster-crd-integration|
-    - |yaml-companion-caching|
-- |yaml-companion-commands|
-- |yaml-companion-lua-api|
-- |yaml-companion-health-check|
-- |yaml-companion-history|
-
-
-REQUIREMENTS                 *yaml-companion-yaml-companion.nvim-requirements*
+REQUIREMENTS                        *yaml-companion-requirements*
 
 - Neovim 0.11+
 - yaml-language-server <https://github.com/redhat-developer/yaml-language-server>
@@ -52,7 +33,7 @@ REQUIREMENTS                 *yaml-companion-yaml-companion.nvim-requirements*
 - Treesitter YAML parser (optional) - for key navigation features (`:TSInstall yaml`)
 
 
-FEATURES                         *yaml-companion-yaml-companion.nvim-features*
+FEATURES                                *yaml-companion-features*
 
 - Builtin Kubernetes manifest autodetection
 - Get/Set specific JSON schema per buffer
@@ -63,7 +44,7 @@ FEATURES                         *yaml-companion-yaml-companion.nvim-features*
 - Key navigation: Browse all YAML keys in quickfix, get key/value at cursor
 
 
-INSTALLATION                 *yaml-companion-yaml-companion.nvim-installation*
+INSTALLATION                        *yaml-companion-installation*
 
 Install the plugin with your preferred package manager:
 
@@ -88,7 +69,7 @@ LAZY.NVIM ~
 <
 
 
-CONFIGURATION               *yaml-companion-yaml-companion.nvim-configuration*
+CONFIGURATION                      *yaml-companion-configuration*
 
 **yaml-companion** comes with the following defaults (pass these to `opts`):
 
@@ -177,7 +158,7 @@ CONFIGURATION               *yaml-companion-yaml-companion.nvim-configuration*
 <
 
 
-FEATURES & USAGE         *yaml-companion-yaml-companion.nvim-features-&-usage*
+FEATURES & USAGE                *yaml-companion-features-&-usage*
 
 
 SCHEMA SELECTION ~
@@ -569,7 +550,7 @@ Or clear only cluster CRD schemas:
 <
 
 
-COMMANDS                         *yaml-companion-yaml-companion.nvim-commands*
+COMMANDS                                *yaml-companion-commands*
 
   --------------------------------------------------------------------------------------
   Command                             Description
@@ -588,7 +569,7 @@ COMMANDS                         *yaml-companion-yaml-companion.nvim-commands*
                                       modeline or lsp to skip action prompt
   --------------------------------------------------------------------------------------
 
-LUA API                           *yaml-companion-yaml-companion.nvim-lua-api*
+LUA API                                  *yaml-companion-lua-api*
 
 All public functions are available via `require("yaml-companion")`:
 
@@ -622,7 +603,7 @@ All public functions are available via `require("yaml-companion")`:
   load_matcher(name)                 Load a custom matcher
   ----------------------------------------------------------------------------------------
 
-HEALTH CHECK                 *yaml-companion-yaml-companion.nvim-health-check*
+HEALTH CHECK                        *yaml-companion-health-check*
 
 Run `:checkhealth yaml-companion` to verify your setup:
 
@@ -632,7 +613,7 @@ Run `:checkhealth yaml-companion` to verify your setup:
 - Cluster connectivity
 
 
-HISTORY                           *yaml-companion-yaml-companion.nvim-history*
+HISTORY                                  *yaml-companion-history*
 
 This repository was originally forked from
 someone-stole-my-name/yaml-companion.nvim

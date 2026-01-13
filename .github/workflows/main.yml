@@ -27,6 +27,12 @@ jobs:
         with:
           node-version: "20"
 
+      - name: Cache selene
+        uses: actions/cache@v4
+        with:
+          path: ~/.cargo/bin/selene
+          key: selene-${{ runner.os }}-${{ hashFiles('Makefile') }}
+
       - name: Install dependencies
         run: make prepare
 

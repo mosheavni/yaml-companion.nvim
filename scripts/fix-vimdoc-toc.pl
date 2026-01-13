@@ -12,6 +12,10 @@ close $fh;
 # Simplify tag names by removing redundant "-introduction"
 $content =~ s/yaml-companion-introduction-/yaml-companion-/g;
 
+# Replace M. prefix with yaml_companion. in API function signatures
+# (the ---@mod annotation handles tags, but not the signature text)
+$content =~ s/^M\./yaml_companion./gm;
+
 # Find and replace the TOC section
 $content =~ s{
   (Table\ of\ Contents\s+\*yaml-companion-table-of-contents\*\n+)

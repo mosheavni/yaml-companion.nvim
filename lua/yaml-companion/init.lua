@@ -1,3 +1,14 @@
+---@mod yaml_companion yaml-companion
+---@brief [[
+---A Neovim plugin for YAML schema management with yaml-language-server.
+---
+---Usage:
+--->lua
+---  local yaml_companion = require("yaml-companion")
+---  yaml_companion.setup({ ... })
+---<
+---@brief ]]
+
 local M = {}
 
 local _matchers = require("yaml-companion._matchers")

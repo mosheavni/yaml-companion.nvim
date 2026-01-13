@@ -640,34 +640,45 @@ API Reference                                        *yaml-companion-api*
 
 Generated from Lua source annotations using lemmy-help.
 
-M.setup()                                                              *M.setup*
+==============================================================================
+yaml-companion                                                  *yaml_companion*
+
+A Neovim plugin for YAML schema management with yaml-language-server.
+
+Usage:
+>lua
+  local yaml_companion = require("yaml-companion")
+  yaml_companion.setup({ ... })
+<
+
+yaml_companion.setup()                                                 *yaml_companion.setup*
 
 
-M.set_buf_schema({schema})                                    *M.set_buf_schema*
+yaml_companion.set_buf_schema({schema})                       *yaml_companion.set_buf_schema*
 
     Parameters: ~
         {schema}  (SchemaResult|Schema)
 
 
-M.get_buf_schema()                                            *M.get_buf_schema*
+yaml_companion.get_buf_schema()                               *yaml_companion.get_buf_schema*
 
 
-M.load_matcher()                                                *M.load_matcher*
+yaml_companion.load_matcher()                                   *yaml_companion.load_matcher*
 
 
-M.open_ui_select()                                            *M.open_ui_select*
+yaml_companion.open_ui_select()                               *yaml_companion.open_ui_select*
      Opens a vim.ui.select menu to choose a schema
 
 
-M.open_datree_crd_select({action?})                   *M.open_datree_crd_select*
+yaml_companion.open_datree_crd_select({action?})      *yaml_companion.open_datree_crd_select*
      Opens a vim.ui.select menu to browse Datree CRD catalog
 
     Parameters: ~
         {action?}  (SchemaAction)  Optional action to apply. If nil, prompts user to choose.
 
 
-                                                           *M.add_crd_modelines*
-M.add_crd_modelines({bufnr?}, {options?})
+                                              *yaml_companion.add_crd_modelines*
+yaml_companion.add_crd_modelines({bufnr?}, {options?})
      Detect CRDs in a buffer and add schema modelines for non-core resources
 
     Parameters: ~
@@ -678,7 +689,7 @@ M.add_crd_modelines({bufnr?}, {options?})
         ({added:number,skipped:number,errors:string[]})
 
 
-M.get_modeline({bufnr?})                                        *M.get_modeline*
+yaml_companion.get_modeline({bufnr?})                           *yaml_companion.get_modeline*
      Get modeline info from a buffer
 
     Parameters: ~
@@ -688,7 +699,7 @@ M.get_modeline({bufnr?})                                        *M.get_modeline*
         (ModelineInfo|nil)
 
 
-M.get_keys_quickfix({bufnr?}, {opts?})                     *M.get_keys_quickfix*
+yaml_companion.get_keys_quickfix({bufnr?}, {opts?})        *yaml_companion.get_keys_quickfix*
      Get all YAML keys in quickfix list
      Requires treesitter YAML parser to be installed (:TSInstall yaml)
 
@@ -700,7 +711,7 @@ M.get_keys_quickfix({bufnr?}, {opts?})                     *M.get_keys_quickfix*
         (YamlQuickfixEntry[])  List of quickfix entries
 
 
-M.get_key_at_cursor()                                      *M.get_key_at_cursor*
+yaml_companion.get_key_at_cursor()                         *yaml_companion.get_key_at_cursor*
      Get key at cursor position
      Requires treesitter YAML parser to be installed (:TSInstall yaml)
 
@@ -708,7 +719,7 @@ M.get_key_at_cursor()                                      *M.get_key_at_cursor*
         (YamlKeyInfo|nil)  Key info at cursor, or nil if not found
 
 
-M.fetch_cluster_crd({bufnr?})                              *M.fetch_cluster_crd*
+yaml_companion.fetch_cluster_crd({bufnr?})                 *yaml_companion.fetch_cluster_crd*
      Fetch CRD schema from cluster for current buffer
      Requires kubectl to be installed and configured
 
@@ -716,7 +727,7 @@ M.fetch_cluster_crd({bufnr?})                              *M.fetch_cluster_crd*
         {bufnr?}  (number)  Buffer number (defaults to current buffer)
 
 
-M.open_cluster_crd_select({action?})                 *M.open_cluster_crd_select*
+yaml_companion.open_cluster_crd_select({action?})    *yaml_companion.open_cluster_crd_select*
      Open picker to browse CRDs in cluster
      Requires kubectl to be installed and configured
 

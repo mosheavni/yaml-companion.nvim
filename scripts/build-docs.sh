@@ -78,11 +78,6 @@ pandoc \
 
 rm -f "$README_CLEAN"
 
-# Post-process the generated vimdoc:
-# - Simplify tag names by removing redundant "-introduction" from tags
-# - Flatten TOC numbering (convert nested "  - Item" to numbered list)
-perl scripts/fix-vimdoc-toc.pl doc/yaml-companion.txt
-
 # =============================================================================
 # 3. Append API docs to the main vimdoc
 # =============================================================================
@@ -98,5 +93,14 @@ Generated from Lua source annotations using lemmy-help.
 EOF
 
 cat "$API_DOCS" >> doc/yaml-companion.txt
+
+# =============================================================================
+# 4. Post-process the combined vimdoc
+# =============================================================================
+
+# - Simplify tag names by removing redundant "-introduction" from tags
+# - Flatten TOC numbering (convert nested "  - Item" to numbered list)
+# - Replace M. prefix with yaml_companion. in API docs
+perl scripts/fix-vimdoc-toc.pl doc/yaml-companion.txt
 
 echo "Generated doc/yaml-companion.txt"

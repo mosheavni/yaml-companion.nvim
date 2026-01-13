@@ -39,7 +39,6 @@ function M.detect_crds(bufnr)
 
   local resources = {}
   local current = { line_number = 1 }
-  local first_line_is_separator = lines[1] and lines[1]:match("^%-%-%-")
 
   for i, line in ipairs(lines) do
     if line:match("^kind:") then
@@ -76,15 +75,6 @@ function M.detect_crds(bufnr)
       end_line = #lines, -- End of buffer
       is_core = M.is_core_api_group(group),
     })
-  end
-
-  -- Adjust line numbers if first line was a separator
-  if first_line_is_separator then
-    for _, resource in ipairs(resources) do
-      if resource.line_number == 1 then
-        resource.line_number = 1
-      end
-    end
   end
 
   return resources

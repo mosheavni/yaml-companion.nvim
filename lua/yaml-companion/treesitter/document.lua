@@ -5,6 +5,27 @@ local M = {}
 local ts = require("yaml-companion.treesitter")
 local pair = require("yaml-companion.treesitter.pair")
 
+-- Query for all key-value pairs (cached)
+local YAML_PAIR_QUERY = [[
+  (block_mapping_pair) @pair
+  (flow_pair) @pair
+]]
+
+local cached_query = nil
+
+--- Get the parsed YAML pair query (cached)
+---@return vim.treesitter.Query|nil
+local function get_pair_query()
+  if cached_query then
+    return cached_query
+  end
+  local ok, query = pcall(vim.treesitter.query.parse, "yaml", YAML_PAIR_QUERY)
+  if ok then
+    cached_query = query
+  end
+  return cached_query
+end
+
 --- Get all key-value pairs in a buffer
 ---@param bufnr number Buffer number
 ---@return YamlKeyInfo[] keys List of all keys in the document
@@ -17,14 +38,8 @@ M.all_keys = function(bufnr)
   local root = tree:root()
   local keys = {}
 
-  -- Query for all key-value pairs
-  local query_str = [[
-    (block_mapping_pair) @pair
-    (flow_pair) @pair
-  ]]
-
-  local ok, query = pcall(vim.treesitter.query.parse, "yaml", query_str)
-  if not ok then
+  local query = get_pair_query()
+  if not query then
     return {}
   end
 
@@ -59,14 +74,8 @@ M.get_key_at_line = function(bufnr, line)
   local root = tree:root()
   local target_row = line - 1 -- Convert to 0-indexed
 
-  -- Query for all key-value pairs
-  local query_str = [[
-    (block_mapping_pair) @pair
-    (flow_pair) @pair
-  ]]
-
-  local ok, query = pcall(vim.treesitter.query.parse, "yaml", query_str)
-  if not ok then
+  local query = get_pair_query()
+  if not query then
     return nil
   end
 

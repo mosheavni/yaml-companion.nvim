@@ -40,24 +40,6 @@ describe("modeline utilities:", function()
     end)
   end)
 
-  describe("is_document_separator", function()
-    it("should recognize ---", function()
-      eq(true, modeline.is_document_separator("---"))
-    end)
-
-    it("should recognize --- with trailing content", function()
-      eq(true, modeline.is_document_separator("--- some comment"))
-    end)
-
-    it("should not match regular content", function()
-      eq(false, modeline.is_document_separator("kind: Deployment"))
-    end)
-
-    it("should not match indented ---", function()
-      eq(false, modeline.is_document_separator("  ---"))
-    end)
-  end)
-
   describe("find_modeline", function()
     local bufnr
 
@@ -204,85 +186,6 @@ describe("modeline utilities:", function()
         modeline.set_modeline(invalid_bufnr, "https://example.com/schema.json")
       eq(false, success)
       eq(false, was_modified)
-    end)
-  end)
-
-  describe("find_document_boundaries", function()
-    local bufnr
-
-    before_each(function()
-      bufnr = vim.api.nvim_create_buf(false, true)
-    end)
-
-    after_each(function()
-      if vim.api.nvim_buf_is_valid(bufnr) then
-        vim.api.nvim_buf_delete(bufnr, { force = true })
-      end
-    end)
-
-    it("should find single document", function()
-      vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, {
-        "apiVersion: v1",
-        "kind: ConfigMap",
-      })
-
-      local boundaries = modeline.find_document_boundaries(bufnr)
-      eq(1, #boundaries)
-      eq(1, boundaries[1].start_line)
-      eq(2, boundaries[1].end_line)
-    end)
-
-    it("should find multiple documents", function()
-      vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, {
-        "apiVersion: v1",
-        "kind: ConfigMap",
-        "---",
-        "apiVersion: apps/v1",
-        "kind: Deployment",
-      })
-
-      local boundaries = modeline.find_document_boundaries(bufnr)
-      eq(2, #boundaries)
-      eq(1, boundaries[1].start_line)
-      eq(2, boundaries[1].end_line)
-      eq(3, boundaries[2].start_line)
-      eq(5, boundaries[2].end_line)
-    end)
-
-    it("should handle leading document separator", function()
-      vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, {
-        "---",
-        "apiVersion: v1",
-        "kind: ConfigMap",
-      })
-
-      local boundaries = modeline.find_document_boundaries(bufnr)
-      eq(1, #boundaries)
-      eq(1, boundaries[1].start_line)
-      eq(3, boundaries[1].end_line)
-    end)
-
-    it("should handle three documents", function()
-      vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, {
-        "apiVersion: v1",
-        "kind: ConfigMap",
-        "---",
-        "apiVersion: apps/v1",
-        "kind: Deployment",
-        "---",
-        "apiVersion: v1",
-        "kind: Service",
-      })
-
-      local boundaries = modeline.find_document_boundaries(bufnr)
-      eq(3, #boundaries)
-    end)
-
-    it("should return empty for empty buffer", function()
-      vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, {})
-
-      local boundaries = modeline.find_document_boundaries(bufnr)
-      eq(0, #boundaries)
     end)
   end)
 end)

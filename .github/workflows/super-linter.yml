@@ -22,11 +22,6 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Cache Docker image
-        uses: ScribeMD/docker-cache@0.5.0
-        with:
-          key: docker-${{ runner.os }}-superlinter-slim-v8
-
       - name: Run Super-Linter
         uses: super-linter/super-linter/slim@v8.3.2
         env:

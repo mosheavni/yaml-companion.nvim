@@ -6,6 +6,47 @@ local schema = require("yaml-companion.schema")
 
 local log = require("yaml-companion.log")
 
+--- Counter for generating unique progress tokens
+local progress_token_counter = 0
+
+--- Send a progress notification for schema changes by dispatching to Neovim's handler
+---@param client vim.lsp.Client
+---@param schema_name string
+local function notify_schema_change(client, schema_name)
+  local handler = vim.lsp.handlers["$/progress"]
+  if not handler then
+    log.fmt_debug("$/progress handler not available")
+    return
+  end
+
+  progress_token_counter = progress_token_counter + 1
+  local token = "yaml-companion-" .. progress_token_counter
+  local msg = schema_name .. " schema applied"
+
+  local ctx = { client_id = client.id, method = "$/progress" }
+
+  -- Dispatch begin notification to Neovim's progress handler
+  handler(nil, {
+    token = token,
+    value = {
+      kind = "begin",
+      title = "YAML Schema",
+      message = msg,
+    },
+  }, ctx)
+
+  -- Dispatch end notification after a short delay
+  vim.defer_fn(function()
+    handler(nil, {
+      token = token,
+      value = {
+        kind = "end",
+        message = msg,
+      },
+    }, ctx)
+  end, 100)
+end
+
 ---@type { client: vim.lsp.Client, schema: Schema, executed: boolean}[]
 M.ctxs = {}
 M.initialized_client_ids = {}
@@ -189,6 +230,9 @@ M.schema = function(bufnr, new_schema)
     settings = vim.tbl_deep_extend("force", settings, { yaml = { schemas = override } })
     client.settings = vim.tbl_deep_extend("force", settings, { yaml = { schemas = override } })
     client.workspace_did_change_configuration(client.settings)
+
+    -- Send progress notification for schema change
+    notify_schema_change(client, new_schema.name)
   end
 
   return M.ctxs[bufnr].schema

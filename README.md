@@ -190,6 +190,12 @@ require("yaml-companion").open_ui_select()
 
 This uses `vim.ui.select` so you can use the picker of your choice (e.g., with [dressing.nvim](https://github.com/stevearc/dressing.nvim)).
 
+#### Progress Notifications
+
+![fidget-schema](https://github.com/user-attachments/assets/951534cd-651e-4bed-af39-804fd1fa0780)
+
+When a schema is applied (either automatically or manually), yaml-companion sends LSP progress notifications (`$/progress`). This integrates with progress UI plugins like [fidget.nvim](https://github.com/j-hui/fidget.nvim), showing a brief "YAML Schema: \<schema_name\> schema applied" message.
+
 #### Statusline Integration
 
 Show the current schema in your statusline:

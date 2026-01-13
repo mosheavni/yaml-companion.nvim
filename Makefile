@@ -1,8 +1,8 @@
 KUBERNETES_VERSION=1.32.1
 
-.PHONY: all lint test prepare generate-kubernetes generate_kubernetes_resources generate_kubernetes_version clean
+.PHONY: all lint test prepare docs generate-kubernetes generate_kubernetes_resources generate_kubernetes_version clean
 
-all: test
+all: test docs
 
 lint:
 	stylua -c .
@@ -23,13 +23,16 @@ prepare:
 	@command -v selene >/dev/null || cargo install selene
 	@command -v yaml-language-server >/dev/null || npm install -g yaml-language-server
 
+docs:
+	./scripts/build-docs.sh
+
 generate-kubernetes: generate_kubernetes_version generate_kubernetes_resources
 
 generate_kubernetes_resources:
-	perl resources/scripts/generate_kubernetes_resources.pl > lua/yaml-companion/builtin/kubernetes/resources.lua
+	perl scripts/generate_kubernetes_resources.pl > lua/yaml-companion/builtin/kubernetes/resources.lua
 
 generate_kubernetes_version:
-	perl resources/scripts/generate_kubernetes_version.pl ${KUBERNETES_VERSION} > lua/yaml-companion/builtin/kubernetes/version.lua
+	perl scripts/generate_kubernetes_version.pl ${KUBERNETES_VERSION} > lua/yaml-companion/builtin/kubernetes/version.lua
 
 clean:
 	rm -rf ../plenary.nvim

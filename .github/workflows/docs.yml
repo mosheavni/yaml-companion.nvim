@@ -1,0 +1,27 @@
+name: docs
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/docs.yml"
+      - "doc/**"
+      - "lua/**"
+      - "README.md"
+      - "scripts/**"
+  workflow_dispatch:
+
+jobs:
+  docs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Generate vimdoc
+        run: ./scripts/build-docs.sh
+
+      - name: Commit changes
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "chore(doc): auto-generate vimdoc"
+          file_pattern: "doc/*.txt"

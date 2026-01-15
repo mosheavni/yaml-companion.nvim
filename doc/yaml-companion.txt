@@ -77,14 +77,14 @@ CONFIGURATION                      *yaml-companion-configuration*
     {
       -- Shared cache directory for all cached data (datree catalog, cluster CRD schemas)
       cache_dir = nil, -- Override location (default: stdpath("data")/yaml-companion.nvim/)
-    
+
       -- Built in file matchers
       builtin_matchers = {
         -- Detects Kubernetes files based on content
         kubernetes = { enabled = true },
         cloud_init = { enabled = true }
       },
-    
+
       -- Additional schemas available in the picker
       schemas = {
         --{
@@ -92,14 +92,14 @@ CONFIGURATION                      *yaml-companion-configuration*
           --uri = "https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/v1.32.1-standalone-strict/all.json",
         --},
       },
-    
+
       -- Key navigation features
       keys = {
         enabled = true, -- Enable key navigation features (creates :YamlKeys command)
         include_values = false, -- Show values in quickfix entries
         max_value_length = 50, -- Truncate long values in display
       },
-    
+
       -- Modeline features
       modeline = {
         auto_add = {
@@ -110,20 +110,20 @@ CONFIGURATION                      *yaml-companion-configuration*
         validate_urls = false, -- Check if schema URL exists (slower)
         notify = true, -- Show notifications when modelines are added
       },
-    
+
       -- Datree CRD catalog settings
       datree = {
         cache_ttl = 3600, -- Cache TTL in seconds (0 = never expire, -1 = disable)
         raw_content_base = "https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/",
       },
-    
+
       -- Cluster CRD features
       cluster_crds = {
         enabled = true, -- Enable cluster CRD features
         fallback = false, -- Auto-fallback to cluster when Datree doesn't have schema
         cache_ttl = 86400, -- Cache expiration in seconds (default: 24h, 0 = never expire)
       },
-    
+
       -- Customize which API groups are considered "core" (skipped by CRD detection)
       core_api_groups = {
         [""] = true,
@@ -132,7 +132,7 @@ CONFIGURATION                      *yaml-companion-configuration*
         ["networking.k8s.io"] = true,
         -- ... add or remove as needed
       },
-    
+
       -- Pass any additional options that will be merged in the final LSP config
       lspconfig = {
         flags = {
@@ -279,7 +279,7 @@ Get the YAML key and value at the current cursor position:
         vim.notify("Copied: " .. info.key)
       end
     end, { desc = "Copy YAML key path" })
-    
+
     vim.keymap.set("n", "<leader>yv", function()
       local info = require("yaml-companion").get_key_at_cursor()
       if info and info.value then
@@ -355,10 +355,10 @@ Or via Lua:
 >lua
     -- Add modelines for all detected CRDs
     require("yaml-companion").add_crd_modelines()
-    
+
     -- Preview what would be added (dry run)
     require("yaml-companion").add_crd_modelines(0, { dry_run = true })
-    
+
     -- Overwrite existing modelines
     require("yaml-companion").add_crd_modelines(0, { overwrite = true })
 <
@@ -662,7 +662,7 @@ yaml_companion.setup({opts?})                                          *yaml_com
         (table)  LSP configuration table for yamlls
 
 
-yaml_companion.set_buf_schema({bufnr}, {schema})              *yaml_companion.set_buf_schema*
+
      Set the schema used for a buffer.
 
     Parameters: ~

@@ -3,26 +3,18 @@
 ==============================================================================
 Table of Contents                           *yaml-companion-table-of-contents*
 
- 1. Introduction                                            |yaml-companion-introduction|
- 2. Requirements                                            |yaml-companion-requirements|
- 3. Features                                                |yaml-companion-features|
- 4. Installation                                            |yaml-companion-installation|
- 5. Configuration                                           |yaml-companion-configuration|
- 6. Features & Usage                                        |yaml-companion-features-&-usage|
- 7. Commands                                                |yaml-companion-commands|
- 8. Lua API                                                 |yaml-companion-lua-api|
- 9. Health Check                                            |yaml-companion-health-check|
-10. History                                                 |yaml-companion-history|
-11. Links                                                   |yaml-companion-links|
+1. Introduction                                             |yaml-companion-introduction|
+2. Requirements                                             |yaml-companion-requirements|
+3. Features                                                 |yaml-companion-features|
+4. Installation                                             |yaml-companion-installation|
+5. Configuration                                            |yaml-companion-configuration|
+6. Features & Usage                                         |yaml-companion-features-&-usage|
+7. Commands                                                 |yaml-companion-commands|
+8. Health Check                                             |yaml-companion-health-check|
+9. History                                                  |yaml-companion-history|
 
 ==============================================================================
 1. Introduction                                  *yaml-companion-introduction*
-
-<https://github.com/mosheavni/yaml-companion.nvim/actions/workflows/main.yml>
-<https://github.com/mosheavni/yaml-companion.nvim/actions/workflows/super-linter.yml>
-<https://neovim.io>
-
-
 
 
 REQUIREMENTS                        *yaml-companion-requirements*
@@ -569,40 +561,6 @@ COMMANDS                                *yaml-companion-commands*
                                       modeline or lsp to skip action prompt
   --------------------------------------------------------------------------------------
 
-LUA API                                  *yaml-companion-lua-api*
-
-All public functions are available via `require("yaml-companion")`:
-
-  ----------------------------------------------------------------------------------------
-  Function                           Description
-  ---------------------------------- -----------------------------------------------------
-  setup(opts)                        Initialize the plugin with configuration options
-
-  get_buf_schema(bufnr)              Get the current schema for a buffer
-
-  set_buf_schema(bufnr, schema)      Set the schema for a buffer
-
-  open_ui_select()                   Open schema picker (all available schemas)
-
-  open_datree_crd_select(action?)    Browse Datree catalog. If action is nil, prompts
-                                     user; if "modeline" or "lsp", applies directly
-
-  open_cluster_crd_select(action?)   Browse CRDs from cluster. If action is nil, prompts
-                                     user; if "modeline" or "lsp", applies directly
-
-  fetch_cluster_crd(bufnr)           Fetch CRD schema from cluster for buffer
-
-  add_crd_modelines(bufnr, opts)     Auto-detect CRDs and add modelines
-
-  get_modeline(bufnr)                Get modeline info from a buffer
-
-  get_keys_quickfix(bufnr, opts)     Get all YAML keys in quickfix format
-
-  get_key_at_cursor()                Get key info at current cursor position
-
-  load_matcher(name)                 Load a custom matcher
-  ----------------------------------------------------------------------------------------
-
 HEALTH CHECK                        *yaml-companion-health-check*
 
 Run `:checkhealth yaml-companion` to verify your setup:
@@ -620,20 +578,6 @@ someone-stole-my-name/yaml-companion.nvim
 <https://github.com/someone-stole-my-name/yaml-companion.nvim>. It has since
 been unforked and is now maintained independently. The original commit history
 has been preserved.
-
-==============================================================================
-2. Links                                                *yaml-companion-links*
-
-1. *Build*: https://github.com/mosheavni/yaml-companion.nvim/actions/workflows/main.yml/badge.svg
-2. *Lint*: https://github.com/mosheavni/yaml-companion.nvim/actions/workflows/super-linter.yml/badge.svg
-3. *Neovim*: https://img.shields.io/badge/Neovim-0.11+-blueviolet.svg?logo=neovim
-4. *completion*: https://github.com/user-attachments/assets/40509084-c69a-4c8d-8380-9149b439b7ad
-5. *schema-auto-detect*: https://github.com/user-attachments/assets/dc8fd636-aac2-42d2-b3dd-9aa306221d6d
-6. *fidget-schema*: https://github.com/user-attachments/assets/951534cd-651e-4bed-af39-804fd1fa0780
-
-Generated by panvimdoc <https://github.com/kdheepak/panvimdoc>
-
-vim:tw=78:ts=8:noet:ft=help:norl:
 
 ==============================================================================
 API Reference                                        *yaml-companion-api*
@@ -758,5 +702,8 @@ yaml_companion.open_cluster_crd_select({action?})    *yaml_companion.open_cluste
     Parameters: ~
         {action?}  (SchemaAction)  Optional action to apply. If nil, prompts user to choose.
 
+
+
+Generated by panvimdoc <https://github.com/kdheepak/panvimdoc>
 
 vim:tw=78:ts=8:noet:ft=help:norl:

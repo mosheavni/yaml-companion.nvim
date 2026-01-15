@@ -7,7 +7,7 @@
 [![Neovim](https://img.shields.io/badge/Neovim-0.11+-blueviolet.svg?logo=neovim)](https://neovim.io)
 
 ![completion](https://github.com/user-attachments/assets/40509084-c69a-4c8d-8380-9149b439b7ad)
-![schema-auto-detect](https://github.com/user-attachments/assets/20b35aa4-43d6-4615-b624-9a057dd4ab33)
+![schema-auto-detect](https://github.com/user-attachments/assets/dc8fd636-aac2-42d2-b3dd-9aa306221d6d)
 
 ## Table of Contents
 

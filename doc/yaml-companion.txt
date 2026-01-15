@@ -651,19 +651,43 @@ Usage:
   yaml_companion.setup({ ... })
 <
 
-yaml_companion.setup()                                                 *yaml_companion.setup*
-
-
-yaml_companion.set_buf_schema({schema})                       *yaml_companion.set_buf_schema*
+yaml_companion.setup({opts?})                                          *yaml_companion.setup*
+     Initialize yaml-companion with the given options.
+     Returns lspconfig settings table to be used with lspconfig or vim.lsp.config.
 
     Parameters: ~
-        {schema}  (SchemaResult|Schema)
+        {opts?}  (ConfigOptions)  Configuration options (see ConfigOptions for details)
+
+    Returns: ~
+        (table)  LSP configuration table for yamlls
 
 
-yaml_companion.get_buf_schema()                               *yaml_companion.get_buf_schema*
+yaml_companion.set_buf_schema({bufnr}, {schema})              *yaml_companion.set_buf_schema*
+     Set the schema used for a buffer.
+
+    Parameters: ~
+        {bufnr}   (number)               Buffer number
+        {schema}  (SchemaResult|Schema)  Schema to set for the buffer
 
 
-yaml_companion.load_matcher()                                   *yaml_companion.load_matcher*
+yaml_companion.get_buf_schema({bufnr})                        *yaml_companion.get_buf_schema*
+     Get the schema used for a buffer.
+
+    Parameters: ~
+        {bufnr}  (number)  Buffer number
+
+    Returns: ~
+        (SchemaResult)  Table containing result array with the current schema
+
+
+yaml_companion.load_matcher({name})                             *yaml_companion.load_matcher*
+     Loads a matcher by name.
+
+    Parameters: ~
+        {name}  (string)  Name of the matcher (e.g., "kubernetes", "cloud-init")
+
+    Returns: ~
+        (Matcher|nil)  The loaded matcher, or nil if not found
 
 
 yaml_companion.open_ui_select()                               *yaml_companion.open_ui_select*

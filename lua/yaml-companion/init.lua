@@ -14,6 +14,10 @@ local M = {}
 local _matchers = require("yaml-companion._matchers")
 M.ctx = {}
 
+--- Initialize yaml-companion with the given options.
+--- Returns lspconfig settings table to be used with lspconfig or vim.lsp.config.
+---@param opts? ConfigOptions Configuration options (see ConfigOptions for details)
+---@return table lspconfig LSP configuration table for yamlls
 M.setup = function(opts)
   local config = require("yaml-companion.config")
   local context = require("yaml-companion.context")
@@ -149,22 +153,24 @@ M.setup = function(opts)
 end
 
 --- Set the schema used for a buffer.
----@param bufnr number: Buffer number
----@param schema SchemaResult | Schema
+---@param bufnr number Buffer number
+---@param schema SchemaResult|Schema Schema to set for the buffer
 M.set_buf_schema = function(bufnr, schema)
   M.ctx.schema(bufnr, schema)
 end
 
 --- Get the schema used for a buffer.
----@param bufnr number: Buffer number
+---@param bufnr number Buffer number
+---@return SchemaResult result Table containing result array with the current schema
 M.get_buf_schema = function(bufnr)
   -- TODO: remove the result and instead return a Schema directly
   -- this will break existing clients :/
   return { result = { M.ctx.schema(bufnr) } }
 end
 
---- Loads a matcher.
----@param name string: Name of the matcher
+--- Loads a matcher by name.
+---@param name string Name of the matcher (e.g., "kubernetes", "cloud-init")
+---@return Matcher|nil matcher The loaded matcher, or nil if not found
 M.load_matcher = function(name)
   return _matchers.load(name)
 end

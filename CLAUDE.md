@@ -91,28 +91,112 @@ Tests use Plenary's busted-style test framework. Test files are in `tests/` dire
 
 Tests require `plenary.nvim` cloned as a sibling to this repo (done by `make prepare`). Neovim 0.11+ is required for `vim.lsp.config` support.
 
-## Type Definitions
+## EmmyLua Annotations
 
-**IMPORTANT:** When adding new configuration options or data structures, always
-update `lua/yaml-companion/meta.lua` with the corresponding `@class` type
-definitions. This file provides LSP type hints for the entire codebase.
+**CRITICAL:** Documentation is auto-generated from EmmyLua annotations. Every
+public function, configuration option, and data structure MUST be properly
+annotated. Missing or incorrect annotations will result in incomplete or wrong
+documentation.
 
-For example, when adding a new config section like `cluster_crds`:
+### What Goes Where
+
+#### In `lua/yaml-companion/meta.lua` (Shared Types)
+
+Add to `meta.lua` when the type is:
+
+- **Shared across modules** (used in multiple files)
+- **Part of the public API** (configuration, return types, callback parameters)
+- **Complex data structures** (classes with multiple fields)
+
+```lua
+---@class MyNewConfig
+---@field enabled boolean Enable the feature
+---@field timeout number Timeout in milliseconds
+
+---@class MyReturnType
+---@field success boolean Whether operation succeeded
+---@field data string|nil Result data if successful
+```
+
+#### In-Place (Source Files)
+
+Add annotations directly in source files for:
+
+- **Function signatures** (parameters, return types, descriptions)
+- **Local types** only used within that file
+- **Module-level variables**
+
+### Function Annotation Format
+
+**Every public function MUST have complete annotations:**
+
+```lua
+--- Brief description of what the function does.
+--- Additional details can go on subsequent lines.
+---@param bufnr number Buffer number to operate on
+---@param schema Schema Schema to apply
+---@param opts? ApplySchemaOpts Optional configuration
+---@return boolean success Whether the operation succeeded
+---@return string|nil error Error message if failed
+function M.apply_schema(bufnr, schema, opts)
+  -- implementation
+end
+```
+
+### Annotation Requirements
+
+1. **Description line** - First line(s) without `@` describe the function
+2. **All parameters** - Use `@param name type Description`
+3. **Optional params** - Use `?` suffix: `@param opts? table`
+4. **Return values** - Use `@return type description` for each return value
+5. **Nilable types** - Use `type|nil` for values that can be nil
+
+### Examples
+
+**Adding a new configuration option:**
 
 1. Add the type class in `meta.lua`:
 
    ```lua
    ---@class ClusterCrdsConfig
-   ---@field enabled boolean
-   ---@field fallback boolean
+   ---@field enabled? boolean Enable cluster CRD features
+   ---@field fallback? boolean Auto-fallback to cluster when Datree fails
+   ---@field cache_ttl? number Cache expiration in seconds (default: 24h)
    ```
 
-2. Add it to `ConfigOptions`:
+2. Add it to `ConfigOptions` in `meta.lua`:
 
    ```lua
    ---@class ConfigOptions
-   ---@field cluster_crds ClusterCrdsConfig
+   ---@field cluster_crds ClusterCrdsConfig Cluster CRD fetching configuration
    ```
+
+**Adding a new public function:**
+
+```lua
+--- Fetch CRD schema from the connected Kubernetes cluster.
+--- Queries the cluster API server for the CRD definition and converts
+--- it to a JSON schema that can be used for validation.
+---@param kind string The CRD kind (e.g., "Application")
+---@param api_group string The API group (e.g., "argoproj.io")
+---@param version string The API version (e.g., "v1alpha1")
+---@return Schema|nil schema The schema if found
+---@return string|nil error Error message if fetch failed
+function M.fetch_cluster_crd(kind, api_group, version)
+  -- implementation
+end
+```
+
+### Checklist for Changes
+
+When modifying Lua code, verify:
+
+- [ ] All new functions have `---` description lines
+- [ ] All parameters documented with `@param`
+- [ ] All return values documented with `@return`
+- [ ] New data structures added to `meta.lua` with `@class`
+- [ ] Optional fields marked with `?` suffix
+- [ ] Field descriptions explain purpose, not just type
 
 ## Documentation
 

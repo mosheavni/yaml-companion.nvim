@@ -139,7 +139,7 @@ function M.setup(options)
 
   local all_schemas = vim.deepcopy(M.options.schemas)
   -- Handle legacy format: { result = { schema1, schema2, ... } }
-  if all_schemas.result and type(all_schemas.result) == "table" then
+  if all_schemas and all_schemas.result and type(all_schemas.result) == "table" then
     all_schemas = all_schemas.result
   end
   local collected_uris = {}
@@ -170,7 +170,15 @@ function M.setup(options)
   -- Register handler both in lspconfig options (for lspconfig users)
   -- and globally (for native vim.lsp.config users)
   handlers["yaml/schema/store/initialized"] = store_initialized_handler
-  M.options.lspconfig.handlers = handlers
+
+  -- Merge user's handlers with the required yaml-companion handler
+  -- User's handlers take precedence for any conflicts
+  local user_handlers = options.lspconfig.handlers or {}
+  M.options.lspconfig.handlers = vim.tbl_deep_extend(
+    "force",
+    { ["yaml/schema/store/initialized"] = store_initialized_handler },
+    user_handlers
+  )
 
   -- Also register globally for native vim.lsp.config/vim.lsp.enable support
   vim.lsp.handlers["yaml/schema/store/initialized"] = store_initialized_handler

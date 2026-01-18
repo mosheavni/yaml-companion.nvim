@@ -159,6 +159,38 @@ describe("config module:", function()
       assert.is_not_nil(config.options.lspconfig.handlers["yaml/schema/store/initialized"])
     end)
 
+    it("should preserve user-provided handlers while adding yaml-companion handler", function()
+      local user_handler = function() end
+
+      config.setup({
+        lspconfig = {
+          handlers = {
+            ["textDocument/hover"] = user_handler,
+          },
+        },
+      })
+
+      -- User's handler should be preserved
+      eq(user_handler, config.options.lspconfig.handlers["textDocument/hover"])
+      -- yaml-companion's handler should also be present
+      assert.is_not_nil(config.options.lspconfig.handlers["yaml/schema/store/initialized"])
+    end)
+
+    it("should let user override yaml/schema/store/initialized handler", function()
+      local custom_handler = function() end
+
+      config.setup({
+        lspconfig = {
+          handlers = {
+            ["yaml/schema/store/initialized"] = custom_handler,
+          },
+        },
+      })
+
+      -- User's custom handler should take precedence
+      eq(custom_handler, config.options.lspconfig.handlers["yaml/schema/store/initialized"])
+    end)
+
     it("should override lspconfig settings", function()
       config.setup({
         lspconfig = {

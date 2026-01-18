@@ -159,9 +159,9 @@ end
 
    ```lua
    ---@class ClusterCrdsConfig
-   ---@field enabled boolean Enable cluster CRD features
-   ---@field fallback boolean Auto-fallback to cluster when Datree fails
-   ---@field cache_ttl number Cache expiration in seconds (default: 24h)
+   ---@field enabled? boolean Enable cluster CRD features
+   ---@field fallback? boolean Auto-fallback to cluster when Datree fails
+   ---@field cache_ttl? number Cache expiration in seconds (default: 24h)
    ```
 
 2. Add it to `ConfigOptions` in `meta.lua`:

@@ -1,5 +1,4 @@
 local M = {}
-local handlers = require("vim.lsp.handlers")
 local matchers = require("yaml-companion._matchers")
 
 --- Chains two callbacks, running the hook after the original
@@ -166,10 +165,6 @@ function M.setup(options)
   end
 
   local store_initialized_handler = require("yaml-companion.lsp.handler").store_initialized
-
-  -- Register handler both in lspconfig options (for lspconfig users)
-  -- and globally (for native vim.lsp.config users)
-  handlers["yaml/schema/store/initialized"] = store_initialized_handler
 
   -- Merge user's handlers with the required yaml-companion handler
   -- User's handlers take precedence for any conflicts

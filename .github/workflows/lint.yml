@@ -40,7 +40,12 @@ jobs:
       - name: Install Selene
         run: |
           if ! command -v selene &> /dev/null; then
-            cargo install selene
+            mkdir -p "$HOME/.cargo/bin"
+            curl -L -o selene.zip https://github.com/Kampfkarren/selene/releases/latest/download/selene-linux.zip
+            unzip selene.zip
+            rm -f selene.zip
+            chmod +x selene
+            mv selene "$HOME/.cargo/bin/selene"
           fi
 
       - name: Run StyLua

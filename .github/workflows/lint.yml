@@ -1,0 +1,73 @@
+name: Lint
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  statuses: write
+
+jobs:
+  lua:
+    name: Lua (selene + stylua)
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Cache linters
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/bin/selene
+            /usr/local/bin/stylua
+          key: linters-${{ runner.os }}-v1
+
+      - name: Install StyLua
+        run: |
+          if ! command -v stylua &> /dev/null; then
+            curl -L -o stylua.zip https://github.com/JohnnyMorganz/StyLua/releases/latest/download/stylua-linux-x86_64.zip
+            unzip stylua.zip
+            rm -f stylua.zip
+            chmod +x stylua
+            sudo mv stylua /usr/local/bin/
+          fi
+
+      - name: Install Selene
+        run: |
+          if ! command -v selene &> /dev/null; then
+            cargo install selene
+          fi
+
+      - name: Run StyLua
+        run: stylua -c .
+
+      - name: Run Selene
+        run: selene .
+
+  super-linter:
+    name: YAML, Markdown, GitHub Actions
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run Super-Linter
+        uses: super-linter/super-linter/slim@v8.3.2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DEFAULT_BRANCH: main
+          VALIDATE_ALL_CODEBASE: true
+          LINTER_RULES_PATH: .
+
+          VALIDATE_LUA: false
+          VALIDATE_YAML: true
+          VALIDATE_MARKDOWN: true
+          VALIDATE_GITHUB_ACTIONS: true

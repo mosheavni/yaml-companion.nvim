@@ -72,7 +72,6 @@ jobs:
           VALIDATE_ALL_CODEBASE: true
           LINTER_RULES_PATH: .
 
-          VALIDATE_LUA: false
           VALIDATE_YAML: true
           VALIDATE_MARKDOWN: true
           VALIDATE_GITHUB_ACTIONS: true

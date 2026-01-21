@@ -3,7 +3,7 @@
 # yaml-companion.nvim
 
 [![Build](https://github.com/mosheavni/yaml-companion.nvim/actions/workflows/main.yml/badge.svg)](https://github.com/mosheavni/yaml-companion.nvim/actions/workflows/main.yml)
-[![Lint](https://github.com/mosheavni/yaml-companion.nvim/actions/workflows/super-linter.yml/badge.svg)](https://github.com/mosheavni/yaml-companion.nvim/actions/workflows/super-linter.yml)
+[![Lint](https://github.com/mosheavni/yaml-companion.nvim/actions/workflows/lint.yml/badge.svg)](https://github.com/mosheavni/yaml-companion.nvim/actions/workflows/lint.yml)
 [![Neovim](https://img.shields.io/badge/Neovim-0.11+-blueviolet.svg?logo=neovim)](https://neovim.io)
 
 ![completion](https://github.com/user-attachments/assets/40509084-c69a-4c8d-8380-9149b439b7ad)

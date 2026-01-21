@@ -15,8 +15,8 @@ detection and selection capabilities.
 ## Development Commands
 
 ```bash
-make lint                # Check code style with StyLua
-make test                # Run lint + Plenary test suite (headless Neovim)
+make lint                # Check code style with StyLua and Selene
+make test                # Run Plenary test suite (headless Neovim)
 make prepare             # Setup dev environment (clone deps, install stylua, yaml-language-server)
 make generate-kubernetes # Regenerate Kubernetes schema files
 ```

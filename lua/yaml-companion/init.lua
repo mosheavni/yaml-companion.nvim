@@ -49,12 +49,23 @@ M.setup = function(opts)
         -- Set up buffer context
         context.setup(args.buf, client)
 
-        -- Auto-add modelines on attach if configured
-        if
+        -- Cluster CRD auto-apply takes precedence over the Datree modeline
+        -- auto-add: it is cache-first and prefers the local cluster cache, so
+        -- running the Datree auto-add too would write a competing modeline.
+        local cluster_auto = config.options.cluster_crds
+          and config.options.cluster_crds.enabled
+          and config.options.cluster_crds.auto_apply
+
+        if cluster_auto then
+          vim.schedule(function()
+            require("yaml-companion.kubectl").auto_apply_from_buffer(args.buf, cluster_auto)
+          end)
+        elseif
           config.options.modeline
           and config.options.modeline.auto_add
           and config.options.modeline.auto_add.on_attach
         then
+          -- Auto-add modelines on attach if configured
           vim.schedule(function()
             local crd_detector = require("yaml-companion.modeline.crd_detector")
             local modeline_opts = { overwrite = config.options.modeline.overwrite_existing }

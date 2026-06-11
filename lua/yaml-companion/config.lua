@@ -46,6 +46,10 @@ M.defaults = {
   cluster_crds = {
     enabled = true, -- Enable cluster CRD features
     fallback = false, -- Auto-fallback to cluster when Datree fails
+    -- Auto-apply cluster CRD schema on buffer attach (cache-first, prefers the
+    -- local cluster cache over Datree). false disables. "modeline" persists a
+    -- modeline pointing to the cached schema; "lsp" applies it for the session only.
+    auto_apply = false, ---@type false|"modeline"|"lsp"
     cache_ttl = 86400, -- Cache expiration in seconds (default: 24h, 0 = never expire)
   },
   -- Key navigation features configuration
@@ -130,6 +134,14 @@ function M.setup(options)
 
     -- Auto-enable validate_urls when fallback is true
     M.options.modeline.validate_urls = true
+  end
+
+  -- Validate cluster_crds.auto_apply value
+  local auto_apply = M.options.cluster_crds and M.options.cluster_crds.auto_apply
+  if auto_apply and auto_apply ~= "modeline" and auto_apply ~= "lsp" then
+    error(
+      'yaml-companion: Invalid configuration - cluster_crds.auto_apply must be false, "modeline", or "lsp"'
+    )
   end
 
   -- Preserve user's on_attach callback if provided

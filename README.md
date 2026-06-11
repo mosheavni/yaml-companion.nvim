@@ -118,6 +118,8 @@ Install the plugin with your preferred package manager:
   cluster_crds = {
     enabled = true, -- Enable cluster CRD features
     fallback = false, -- Auto-fallback to cluster when Datree doesn't have schema
+    -- Auto-apply cluster CRD schema on buffer attach (cache-first). false | "modeline" | "lsp"
+    auto_apply = false,
     cache_ttl = 86400, -- Cache expiration in seconds (default: 24h, 0 = never expire)
   },
 
@@ -460,6 +462,39 @@ With this setup:
 > When `fallback = true`, `modeline.validate_urls` is automatically set to `true` (to check if
 > Datree URLs exist before using them). If you explicitly set `validate_urls = false` while `fallback = true`,
 > the plugin will throw an error at startup.
+
+#### Auto-Apply on Buffer Attach
+
+To automatically apply the cluster CRD schema for any Kubernetes manifest when
+you open it, without running any command, set `auto_apply` to how you want the
+schema applied:
+
+```lua
+cluster_crds = {
+  enabled = true,
+  auto_apply = "lsp", -- "lsp" (session only) or "modeline" (persisted in file)
+}
+```
+
+With this setup, whenever `yamlls` attaches to a YAML buffer:
+
+1. The first non-core CRD in the buffer is detected (by `apiVersion`/`kind`)
+2. Its schema is resolved from the local cache first, or fetched from the cluster on a miss
+3. The schema is applied using the chosen action:
+   - `"lsp"` — applied for the session only; the file is not modified
+   - `"modeline"` — a modeline pointing to the cached schema is written to the file
+
+The schema is cached per kubectl context, so subsequent buffers reuse the cached
+schema instead of re-fetching it (until `cache_ttl` expires). This requires
+`kubectl` to be installed and configured; it stays silent when `kubectl` is
+unavailable or no CRD is detected.
+
+> [!IMPORTANT]
+> `cluster_crds.auto_apply` is **cache/cluster-first** and takes precedence over
+> the Datree-based `modeline.auto_add.on_attach`. When `auto_apply` is set, the
+> Datree modeline auto-add is skipped on attach so the local cluster cache is
+> preferred (no competing Datree modeline is written). To use Datree-first
+> modelines instead, leave `auto_apply = false`.
 
 ---
 

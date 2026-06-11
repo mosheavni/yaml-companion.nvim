@@ -118,6 +118,8 @@ Install the plugin with your preferred package manager:
   cluster_crds = {
     enabled = true, -- Enable cluster CRD features
     fallback = false, -- Auto-fallback to cluster when Datree doesn't have schema
+    -- Auto-apply cluster CRD schema on buffer attach (cache-first). false | "modeline" | "lsp"
+    auto_apply = false,
     cache_ttl = 86400, -- Cache expiration in seconds (default: 24h, 0 = never expire)
   },
 
@@ -245,6 +247,15 @@ modeline = { auto_add = { on_attach = true } },
 
 > [!NOTE]
 > With `fallback = true`, `modeline.validate_urls` is forced to `true`. Explicitly setting `validate_urls = false` alongside `fallback = true` errors at startup.
+
+**Auto-apply on attach:** set `cluster_crds.auto_apply` to apply a cluster CRD schema automatically when `yamlls` attaches — the first non-core CRD is detected, resolved from the cache (or fetched on a miss, cached per kubectl context), and applied. Stays silent if `kubectl` is unavailable or no CRD is found.
+
+```lua
+cluster_crds = { enabled = true, auto_apply = "lsp" }, -- "lsp" (session only) or "modeline" (persisted)
+```
+
+> [!IMPORTANT]
+> `auto_apply` is cache/cluster-first and takes precedence over the Datree-based `modeline.auto_add.on_attach`, which is skipped on attach when it's set. Leave `auto_apply = false` to use Datree-first modelines.
 
 ### Caching
 

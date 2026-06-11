@@ -35,6 +35,13 @@ describe("config module:", function()
       eq(true, config.defaults.modeline.notify)
     end)
 
+    it("should have cluster_crds defaults", function()
+      eq(true, config.defaults.cluster_crds.enabled)
+      eq(false, config.defaults.cluster_crds.fallback)
+      eq(false, config.defaults.cluster_crds.auto_apply)
+      eq(86400, config.defaults.cluster_crds.cache_ttl)
+    end)
+
     it("should have datree defaults", function()
       eq(3600, config.defaults.datree.cache_ttl)
       assert.is_true(config.defaults.datree.raw_content_base:match("datreeio/CRDs%-catalog") ~= nil)
@@ -254,6 +261,22 @@ describe("config module:", function()
             validate_urls = false,
           },
         })
+      end)
+    end)
+
+    it("should accept cluster_crds.auto_apply = 'modeline'", function()
+      config.setup({ cluster_crds = { auto_apply = "modeline" } })
+      eq("modeline", config.options.cluster_crds.auto_apply)
+    end)
+
+    it("should accept cluster_crds.auto_apply = 'lsp'", function()
+      config.setup({ cluster_crds = { auto_apply = "lsp" } })
+      eq("lsp", config.options.cluster_crds.auto_apply)
+    end)
+
+    it("should error on invalid cluster_crds.auto_apply value", function()
+      assert.has_error(function()
+        config.setup({ cluster_crds = { auto_apply = "bogus" } })
       end)
     end)
 

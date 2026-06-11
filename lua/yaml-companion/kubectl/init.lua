@@ -360,6 +360,44 @@ function M.fetch_from_buffer(bufnr)
   end)
 end
 
+--- Automatically apply a cluster CRD schema to the buffer on attach.
+--- Detects the first non-core CRD in the buffer, resolves its schema
+--- (cache first, cluster on miss), and applies it without prompting.
+--- Stays silent when kubectl is unavailable or no CRD is detected.
+---@param bufnr? number Buffer number (default: current buffer)
+---@param action? SchemaAction How to apply the schema ("modeline" | "lsp", default: "lsp")
+function M.auto_apply_from_buffer(bufnr, action)
+  bufnr = bufnr or vim.api.nvim_get_current_buf()
+  if action ~= "modeline" then
+    action = "lsp"
+  end
+
+  if not M.is_available() then
+    return
+  end
+
+  if not buffer_util.validate_yaml(bufnr) then
+    return
+  end
+
+  local crd_detector = require("yaml-companion.modeline.crd_detector")
+  local non_core_crds = vim.tbl_filter(function(crd)
+    return not crd.is_core
+  end, crd_detector.detect_crds(bufnr))
+
+  if #non_core_crds == 0 then
+    return
+  end
+
+  local crd = non_core_crds[1]
+  M.get_crd_name(crd.apiGroup, crd.kind, function(crd_name, err)
+    if err or not crd_name then
+      return
+    end
+    M.fetch_and_add_modeline(bufnr, crd_name, crd.line_number, action)
+  end)
+end
+
 --- Fetch CRD and prompt for action selection
 ---@param bufnr number
 ---@param crd_name string

@@ -156,49 +156,24 @@ Install the plugin with your preferred package manager:
 
 ## 🚀 Features & Usage
 
+> All commands and their Lua equivalents are listed in [Commands](#️-commands) and [Lua API](#lua-api).
+
 ### Schema Selection
 
-yaml-companion automatically detects and applies JSON schemas to your YAML files. Schemas are resolved from multiple sources in this order:
+Schemas are auto-detected and applied, resolved from these sources in order:
 
-1. **LSP-provided schema** - from yaml-language-server
-2. **User-defined schemas** - from your config's `schemas` table
-3. **Matcher-detected schemas** - builtin matchers for Kubernetes and cloud-init
-4. **SchemaStore schemas** - from the JSON Schema Store
+1. **LSP-provided** — from yaml-language-server
+2. **User-defined** — from your config's `schemas` table
+3. **Matcher-detected** — builtin Kubernetes and cloud-init matchers
+4. **SchemaStore** — from the JSON Schema Store
 
-#### Automatic Detection
+**Auto-detection:** Kubernetes manifests are detected via `kind:`/`apiVersion:` fields (core resources map to the appropriate Kubernetes schema); cloud-config files via the `#cloud-config` header. Disable either matcher with `builtin_matchers.<name>.enabled = false`.
 
-**Kubernetes:** Detects Kubernetes manifests by scanning for `kind:` and `apiVersion:` fields. Core resources (Deployments, Services, ConfigMaps, etc.) are matched to the appropriate Kubernetes JSON schema.
+**Manual selection:** `open_ui_select()` opens a `vim.ui.select` picker of all available schemas (works with any picker, e.g. [dressing.nvim](https://github.com/stevearc/dressing.nvim)).
 
-**Cloud-init:** Detects cloud-config files by checking for `#cloud-config` header comment.
+**Progress notifications:** Applying a schema sends an LSP `$/progress` notification, integrating with UIs like [fidget.nvim](https://github.com/j-hui/fidget.nvim).
 
-Both matchers can be disabled via config:
-
-```lua
-builtin_matchers = {
-  kubernetes = { enabled = false },
-  cloud_init = { enabled = false },
-}
-```
-
-#### Manual Selection
-
-Open a picker to manually select from all available schemas:
-
-```lua
-require("yaml-companion").open_ui_select()
-```
-
-This uses `vim.ui.select` so you can use the picker of your choice (e.g., with [dressing.nvim](https://github.com/stevearc/dressing.nvim)).
-
-#### Progress Notifications
-
-![fidget-schema](https://github.com/user-attachments/assets/951534cd-651e-4bed-af39-804fd1fa0780)
-
-When a schema is applied (either automatically or manually), yaml-companion sends LSP progress notifications (`$/progress`). This integrates with progress UI plugins like [fidget.nvim](https://github.com/j-hui/fidget.nvim), showing a brief "YAML Schema: \<schema_name\> schema applied" message.
-
-#### Statusline Integration
-
-Show the current schema in your statusline:
+**Statusline:**
 
 ```lua
 local function get_schema()
@@ -210,308 +185,77 @@ local function get_schema()
 end
 ```
 
----
-
 ### Key Navigation
 
-Navigate YAML keys using treesitter. Requires the YAML treesitter parser (`:TSInstall yaml`).
+Navigate YAML keys using treesitter (`:TSInstall yaml`).
 
-#### Quickfix List
+- `:YamlKeys` — populate the quickfix list with every key's dotted path (`.spec.containers[0].image`).
+- `get_key_at_cursor()` — returns `{ key, value, human, line, col }` for the cursor position.
 
-Get all YAML keys in a quickfix list for easy navigation:
-
-```vim
-:YamlKeys
-```
-
-Or via Lua:
-
-```lua
-require("yaml-companion").get_keys_quickfix()
-```
-
-Each entry shows the full dotted key path:
-
-- `.metadata.name`
-- `.spec.containers[0].image`
-- `.spec.replicas`
-
-#### Get Key at Cursor
-
-Get the YAML key and value at the current cursor position:
-
-```lua
-local info = require("yaml-companion").get_key_at_cursor()
-if info then
-  print(info.key) -- ".spec.containers[0].name"
-  print(info.value) -- "my-container"
-  print(info.human) -- ".spec.containers[0].name = my-container"
-  print(info.line) -- 15
-  print(info.col) -- 5
-end
-```
-
-**Example keymaps:**
+Example keymap (copy the key path under the cursor):
 
 ```lua
 vim.keymap.set("n", "<leader>yk", function()
   local info = require("yaml-companion").get_key_at_cursor()
   if info then
     vim.fn.setreg("+", info.key)
-    vim.notify("Copied: " .. info.key)
   end
 end, { desc = "Copy YAML key path" })
-
-vim.keymap.set("n", "<leader>yv", function()
-  local info = require("yaml-companion").get_key_at_cursor()
-  if info and info.value then
-    vim.fn.setreg("+", info.value)
-    vim.notify("Copied: " .. info.value)
-  end
-end, { desc = "Copy YAML value" })
 ```
-
----
 
 ### Modeline Features
 
-Modelines are special YAML comments that tell yaml-language-server which schema to use:
+Modelines are YAML comments that pin a schema and persist in the file:
 
 ```yaml
 # yaml-language-server: $schema=https://example.com/schema.json
-apiVersion: v1
-kind: ConfigMap
 ```
 
-Modelines persist in the file, ensuring everyone editing it gets the same schema support.
-
-#### Browse Datree Schemas
-
-Browse the [datreeio/CRDs-catalog](https://github.com/datreeio/CRDs-catalog) and select a schema:
-
-```vim
-:YamlBrowseDatreeSchemas
-```
-
-Or via Lua:
+- `:YamlBrowseDatreeSchemas [modeline|lsp]` — browse the [datreeio/CRDs-catalog](https://github.com/datreeio/CRDs-catalog) and apply a schema. Without an argument you're prompted to add it as a **modeline** (persisted) or set it as the **LSP schema** (session only).
+- `:YamlAddCRDModelines` — detect non-core CRDs in the buffer (by `kind:`/`apiVersion:`) and add Datree modelines. Core resources are skipped (handled by the kubernetes matcher).
 
 ```lua
-require("yaml-companion").open_datree_crd_select()
+require("yaml-companion").add_crd_modelines(0, { dry_run = true }) -- preview
+require("yaml-companion").add_crd_modelines(0, { overwrite = true }) -- overwrite existing
 ```
 
-This opens a picker to select a CRD schema, then asks how to apply it:
-
-- **Add as modeline (persisted in file)** - Adds a comment at the top of your file
-- **Set as LSP schema (session only)** - Sends schema to yamlls for the current buffer
-
-**Direct action (skip the second prompt):**
-
-```vim
-:YamlBrowseDatreeSchemas modeline  " Add as modeline
-:YamlBrowseDatreeSchemas lsp       " Set as LSP schema
-```
-
-Or via Lua:
+Add modelines automatically:
 
 ```lua
-require("yaml-companion").open_datree_crd_select("modeline")
-require("yaml-companion").open_datree_crd_select("lsp")
+modeline = { auto_add = { on_attach = true, on_save = true } }
 ```
-
-#### Auto-detect CRDs
-
-Detect Custom Resource Definitions in the current buffer and add schema modelines automatically:
-
-```vim
-:YamlAddCRDModelines
-```
-
-Or via Lua:
-
-```lua
--- Add modelines for all detected CRDs
-require("yaml-companion").add_crd_modelines()
-
--- Preview what would be added (dry run)
-require("yaml-companion").add_crd_modelines(0, { dry_run = true })
-
--- Overwrite existing modelines
-require("yaml-companion").add_crd_modelines(0, { overwrite = true })
-```
-
-This parses the buffer for `kind:` and `apiVersion:` fields, identifies non-core Kubernetes resources,
-and adds modelines pointing to the appropriate schema in the Datree CRD catalog.
-
-Core Kubernetes resources (Deployments, Services, ConfigMaps, etc.) are skipped since they're
-handled by the builtin kubernetes matcher.
-
-**Enable automatic modeline addition:**
-
-```lua
-modeline = {
-  auto_add = {
-    on_attach = true, -- Auto-add modelines when yamlls attaches
-    on_save = true, -- Auto-add modelines before saving
-  },
-}
-```
-
----
 
 ### Cluster CRD Integration
 
-For CRDs that are not available in the Datree catalog (e.g., custom/internal CRDs specific to your organization),
-yaml-companion can fetch schemas directly from your Kubernetes cluster using `kubectl`.
-
-#### Setup
-
-Enable cluster CRD features in your config:
+For CRDs not in the Datree catalog (custom/internal), fetch schemas directly from your cluster via `kubectl` — which must be installed, configured for cluster access, and the CRDs installed.
 
 ```lua
-cluster_crds = {
-  enabled = true,
-}
+cluster_crds = { enabled = true }
 ```
 
-Requirements:
+- `:YamlFetchClusterCRD` — detect CRDs in the buffer, fetch their OpenAPI schema via `kubectl get crd`, cache it, and add a modeline.
+- `:YamlBrowseClusterCRDs [modeline|lsp]` — browse all cluster CRDs and apply one (same prompt as Datree).
 
-- `kubectl` must be installed and in your PATH
-- kubectl must be configured with access to your cluster
-- The CRDs must be installed in your cluster
-
-#### Fetch CRD for Current Buffer
-
-Fetch the schema for CRDs detected in your current buffer:
-
-```vim
-:YamlFetchClusterCRD
-```
-
-Or via Lua:
+**Auto-fallback** to the cluster when Datree lacks a schema:
 
 ```lua
-require("yaml-companion").fetch_cluster_crd(0)
+cluster_crds = { enabled = true, fallback = true },
+modeline = { auto_add = { on_attach = true } },
 ```
-
-This command:
-
-1. Detects CRDs in your buffer (by parsing `apiVersion` and `kind`)
-2. Looks up the CRD in your cluster via `kubectl get crd`
-3. Extracts the OpenAPI schema from the CRD
-4. Caches it locally
-5. Adds a modeline pointing to the cached schema
-
-#### Browse All Cluster CRDs
-
-Browse and select from all CRDs installed in your cluster:
-
-```vim
-:YamlBrowseClusterCRDs
-```
-
-Or via Lua:
-
-```lua
-require("yaml-companion").open_cluster_crd_select()
-```
-
-This opens a picker showing all CRDs in your cluster. After selecting, you choose how to apply it:
-
-- **Add as modeline (persisted in file)** - Adds a comment at the top of your file
-- **Set as LSP schema (session only)** - Sends schema to yamlls for the current buffer
-
-**Direct action (skip the second prompt):**
-
-```vim
-:YamlBrowseClusterCRDs modeline  " Add as modeline
-:YamlBrowseClusterCRDs lsp       " Set as LSP schema
-```
-
-Or via Lua:
-
-```lua
-require("yaml-companion").open_cluster_crd_select("modeline")
-require("yaml-companion").open_cluster_crd_select("lsp")
-```
-
-#### Auto-Fallback Mode
-
-Enable automatic fallback to cluster CRD fetching when Datree doesn't have a schema:
-
-```lua
-cluster_crds = {
-  enabled = true,
-  fallback = true, -- Auto-fallback to cluster when Datree doesn't have schema
-},
-modeline = {
-  auto_add = {
-    on_attach = true, -- or on_save = true
-  },
-}
-```
-
-With this setup:
-
-1. When a CRD is detected, yaml-companion first checks the Datree catalog
-2. If Datree doesn't have the schema, it automatically fetches from your cluster
-3. The schema is cached locally for future use
 
 > [!NOTE]
-> When `fallback = true`, `modeline.validate_urls` is automatically set to `true` (to check if
-> Datree URLs exist before using them). If you explicitly set `validate_urls = false` while `fallback = true`,
-> the plugin will throw an error at startup.
-
----
+> With `fallback = true`, `modeline.validate_urls` is forced to `true`. Explicitly setting `validate_urls = false` alongside `fallback = true` errors at startup.
 
 ### Caching
 
-yaml-companion caches data to improve performance and enable offline usage.
+Caches live in `~/.local/share/nvim/yaml-companion.nvim/` — `crd-cache/<context>/<crd>.json` for cluster CRD schemas and `datree-catalog.json` for the Datree index. Override with `cache_dir`.
 
-#### Cache Location
+TTLs (seconds): `datree.cache_ttl` (default `3600`; `0` = never, `-1` = disable) and `cluster_crds.cache_ttl` (default `86400`; `0` = never).
 
-By default, caches are stored in:
-
-```tree
-~/.local/share/nvim/yaml-companion.nvim/
-├── crd-cache/          # Cluster CRD schemas (per kubectl context)
-│   └── <context>/
-│       └── <crd-name>.json
-└── datree-catalog.json # Datree CRD catalog index
-```
-
-Override the location:
-
-```lua
-cache_dir = "/path/to/custom/cache",
-```
-
-#### Cache TTL
-
-Configure how long cached data remains valid:
-
-```lua
-datree = {
-  cache_ttl = 3600, -- Datree catalog TTL in seconds (default: 1 hour)
-                    -- 0 = never expire, -1 = disable caching
-},
-cluster_crds = {
-  cache_ttl = 86400, -- Cluster CRD schemas TTL (default: 24 hours)
-                     -- 0 = never expire
-},
-```
-
-#### Clearing Cache
-
-To manually clear the cache, delete the cache directory:
+Clear by deleting the directory:
 
 ```bash
 rm -rf ~/.local/share/nvim/yaml-companion.nvim/
-```
-
-Or clear only cluster CRD schemas:
-
-```bash
-rm -rf ~/.local/share/nvim/yaml-companion.nvim/crd-cache/
 ```
 
 ## ⌨️ Commands

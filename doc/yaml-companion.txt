@@ -1,5 +1,5 @@
 *yaml-companion.txt*                          YAML schema companion for Neovim
-                 For Neovim >= 0.11.0    Last change: Thu Jun 11 10:05:41 2026
+                 For Neovim >= 0.11.0    Last change: Thu Jun 11 10:06:03 2026
 
 ==============================================================================
 Table of Contents                           *yaml-companion-table-of-contents*

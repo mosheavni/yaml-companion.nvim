@@ -29,11 +29,17 @@ describe("schema detection:", function()
   local yamlconfig = require("yaml-companion").setup()
   SetupYamlls(yamlconfig)
 
-  it("should detect default schema right after start", function()
+  it("should return the default schema for a buffer with no resolved schema", function()
+    -- Open the gitlab-ci buffer so the following test can observe autodiscovery.
     assert(buf("", "yaml", ".gitlab-ci.yml"))
+
+    -- Assert the default against a fresh buffer that autodiscovery never touched,
+    -- so this is deterministic and not racing schema resolution.
+    local fresh = vim.api.nvim_create_buf(false, true)
     local expect = { result = { require("yaml-companion.schema").default() } }
-    local result = require("yaml-companion").get_buf_schema(0)
+    local result = require("yaml-companion").get_buf_schema(fresh)
     assert.are.same(expect, result)
+    vim.api.nvim_buf_delete(fresh, { force = true })
   end)
 
   it("should detect 'gitlab-ci' schema", function()

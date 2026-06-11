@@ -206,6 +206,45 @@ describe("context module:", function()
     end)
   end)
 
+  describe("autodiscover:", function()
+    it("should track a modeline schema returned without a name", function()
+      -- yaml-language-server reports modeline schemas with a uri/description
+      -- but no `name` field. Make sure autodiscover still tracks it.
+      local original_current = schema.current
+      schema.current = function()
+        return {
+          uri = "https://example.com/foo/helmrelease_v2.json",
+          description = "HelmRelease schema",
+        }
+      end
+
+      local bufnr = vim.api.nvim_create_buf(false, true)
+      local mock_client = {
+        id = 7,
+        name = "yamlls",
+        settings = {},
+        workspace_did_change_configuration = function() end,
+      }
+
+      context.ctxs[bufnr] = {
+        client = mock_client,
+        schema = schema.default(),
+        executed = false,
+      }
+      context.initialized_client_ids[mock_client.id] = true
+
+      local result = context.autodiscover(bufnr, mock_client)
+
+      eq("https://example.com/foo/helmrelease_v2.json", result.uri)
+      eq("helmrelease_v2.json", result.name)
+      eq("helmrelease_v2.json", context.ctxs[bufnr].schema.name)
+
+      schema.current = original_current
+      context.initialized_client_ids[mock_client.id] = nil
+      vim.api.nvim_buf_delete(bufnr, { force = true })
+    end)
+  end)
+
   describe("schema function:", function()
     it("should return default schema for unknown buffer", function()
       local result = context.schema(99999, nil)

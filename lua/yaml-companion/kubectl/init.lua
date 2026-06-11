@@ -28,6 +28,9 @@ end
 --- Get the current kubectl context name
 ---@return string|nil context_name, string|nil error
 function M.get_context_name()
+  if not M.is_available() then
+    return nil, "kubectl not found"
+  end
   local result = vim.system({ "kubectl", "config", "current-context" }, { text = true }):wait()
   if result.code ~= 0 then
     return nil, result.stderr or "Failed to get kubectl context"

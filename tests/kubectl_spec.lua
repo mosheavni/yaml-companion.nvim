@@ -104,6 +104,29 @@ describe("kubectl module:", function()
     end)
   end)
 
+  describe("auto_apply_from_buffer", function()
+    it("should be a function", function()
+      eq("function", type(kubectl.auto_apply_from_buffer))
+    end)
+
+    it("should no-op on a non-YAML buffer", function()
+      local bufnr = vim.api.nvim_create_buf(false, true)
+      vim.bo[bufnr].filetype = "lua"
+      local ok = pcall(kubectl.auto_apply_from_buffer, bufnr)
+      eq(true, ok)
+      vim.api.nvim_buf_delete(bufnr, { force = true })
+    end)
+
+    it("should no-op on a YAML buffer without CRDs", function()
+      local bufnr = vim.api.nvim_create_buf(false, true)
+      vim.bo[bufnr].filetype = "yaml"
+      vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, { "foo: bar" })
+      local ok = pcall(kubectl.auto_apply_from_buffer, bufnr)
+      eq(true, ok)
+      vim.api.nvim_buf_delete(bufnr, { force = true })
+    end)
+  end)
+
   describe("construct_crd_name", function()
     it("should construct CRD name for ArgoCD Application", function()
       local name = kubectl.construct_crd_name("argoproj.io", "Application")

@@ -55,6 +55,7 @@
 ---@class ClusterCrdsConfig
 ---@field enabled? boolean Enable cluster CRD features
 ---@field fallback? boolean Auto-fallback to cluster when Datree fails
+---@field auto_apply? false|"modeline"|"lsp" Auto-apply cluster CRD schema on buffer attach (cache-first). false disables.
 ---@field cache_ttl? number Cache expiration in seconds (default: 24h, 0 = never expire)
 
 ---@class ModelineInfo

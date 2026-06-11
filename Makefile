@@ -28,6 +28,14 @@ prepare:
 		chmod +x selene && \
 		sudo mv selene /usr/local/bin/; \
 	}
+	@command -v kubectl >/dev/null || { \
+		arch=$$(uname -m); \
+		case $$arch in x86_64) arch=amd64;; aarch64|arm64) arch=arm64;; esac; \
+		ver=$$(curl -L -s https://dl.k8s.io/release/stable.txt) && \
+		curl -L -o kubectl "https://dl.k8s.io/release/$$ver/bin/linux/$$arch/kubectl" && \
+		chmod +x kubectl && \
+		sudo mv kubectl /usr/local/bin/; \
+	}
 	@command -v yaml-language-server >/dev/null || npm install -g yaml-language-server
 
 docs:

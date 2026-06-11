@@ -1,4 +1,5 @@
 KUBERNETES_VERSION=1.32.1
+SELENE_VERSION=0.31.0
 
 .PHONY: all lint test prepare docs generate-kubernetes generate_kubernetes_resources generate_kubernetes_version clean
 
@@ -20,7 +21,13 @@ prepare:
 		chmod +x stylua && \
 		sudo mv stylua /usr/local/bin/; \
 	}
-	@command -v selene >/dev/null || cargo install selene
+	@command -v selene >/dev/null || { \
+		curl -L -o selene.zip https://github.com/Kampfkarren/selene/releases/download/$(SELENE_VERSION)/selene-$(SELENE_VERSION)-linux.zip && \
+		unzip selene.zip && \
+		rm -f selene.zip && \
+		chmod +x selene && \
+		sudo mv selene /usr/local/bin/; \
+	}
 	@command -v yaml-language-server >/dev/null || npm install -g yaml-language-server
 
 docs:

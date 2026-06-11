@@ -1,4 +1,7 @@
 set noswapfile
+" Reset runtimepath to exclude the user's personal config (e.g. ~/.config/nvim
+" and its after/ dir) so local `make test` matches the hermetic CI environment.
+set runtimepath=$VIMRUNTIME
 set runtimepath+=.
 set runtimepath+=../plenary.nvim/
 set runtimepath+=tests/dummy_matcher/

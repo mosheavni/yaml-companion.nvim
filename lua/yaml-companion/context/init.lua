@@ -100,6 +100,23 @@ M.autodiscover = function(bufnr, client)
         return M.ctxs[bufnr].schema
       end
     end
+
+    -- A schema with a uri but no matching user-defined name usually comes from
+    -- an inline modeline (# yaml-language-server: $schema=...). yamlls already
+    -- applies it (highest priority) but reports it without a `name`, so derive
+    -- one from the uri to keep it tracked/visible (e.g. in the statusline).
+    if current_schema.uri and current_schema.uri ~= schema.default().uri then
+      current_schema.name = current_schema.uri:match("([^/]+)$") or current_schema.uri
+      M.ctxs[bufnr].schema = current_schema
+      log.fmt_debug(
+        "bufnr=%d client_id=%d schema=%s a modeline schema matched this file",
+        bufnr,
+        client.id,
+        current_schema.name
+      )
+      return M.ctxs[bufnr].schema
+    end
+
     log.fmt_debug(
       "bufnr=%d client_id=%d no user defined schema matched this file",
       bufnr,

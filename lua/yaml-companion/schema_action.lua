@@ -30,6 +30,9 @@ function M.apply(bufnr, schema, action, opts)
 
   if action == "modeline" then
     local success, was_modified = modeline.set_modeline(bufnr, schema.uri, line_number, false)
+    if success and was_modified then
+      require("yaml-companion.context").schedule_refresh(bufnr)
+    end
     if should_notify then
       if not success then
         notify.error("Failed to add modeline")

@@ -147,6 +147,37 @@ M.autodiscover = function(bufnr, client)
   return {}
 end
 
+--- Re-run schema autodiscovery for a buffer after a modeline was added
+--- programmatically (auto-add / cluster auto-apply). yamlls only learns about
+--- the buffer change after the LSP debounce, so reset the cached state and poll
+--- a few times until a non-default schema resolves. This lets the statusline
+--- update without requiring a manual save+reload (:w/:e).
+---@param bufnr number
+M.schedule_refresh = function(bufnr)
+  if bufnr == 0 then
+    bufnr = vim.api.nvim_get_current_buf()
+  end
+  if not M.ctxs[bufnr] then
+    return
+  end
+
+  local attempts = 0
+  local function try()
+    local ctx = M.ctxs[bufnr]
+    if not ctx or not vim.api.nvim_buf_is_valid(bufnr) then
+      return
+    end
+    attempts = attempts + 1
+    ctx.executed = false
+    M.autodiscover(bufnr, ctx.client)
+    if ctx.schema.uri == schema.default().uri and attempts < 8 then
+      vim.defer_fn(try, 150)
+    end
+  end
+
+  vim.defer_fn(try, 150)
+end
+
 ---@param bufnr number
 ---@param client vim.lsp.Client
 M.setup = function(bufnr, client)

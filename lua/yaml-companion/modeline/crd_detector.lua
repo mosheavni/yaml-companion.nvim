@@ -172,6 +172,10 @@ function M.add_modelines(bufnr, options)
 
   notify_added_kinds(added_kinds, options.dry_run)
 
+  if result.added > 0 and not options.dry_run then
+    require("yaml-companion.context").schedule_refresh(bufnr)
+  end
+
   return result
 end
 
@@ -398,6 +402,9 @@ function M.add_modelines_with_fallback(bufnr, options, callback)
     if idx > #non_core_crds then
       -- Done processing all CRDs
       notify_added_kinds(added_kinds, options.dry_run)
+      if result.added > 0 and not options.dry_run then
+        require("yaml-companion.context").schedule_refresh(bufnr)
+      end
       callback(result)
       return
     end

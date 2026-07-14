@@ -1,5 +1,5 @@
 *yaml-companion.txt*                          YAML schema companion for Neovim
-                 For Neovim >= 0.11.0    Last change: Sun Jun 14 12:07:36 2026
+                 For Neovim >= 0.11.0    Last change: Tue Jul 14 09:04:33 2026
 
 ==============================================================================
 Table of Contents                           *yaml-companion-table-of-contents*
@@ -39,26 +39,22 @@ FEATURES                                *yaml-companion-features*
 
 INSTALLATION                        *yaml-companion-installation*
 
-Install the plugin with your preferred package manager:
 
-
-LAZY.NVIM ~
+VIM.PACK — NEOVIM 0.12+ NATIVE PLUGIN MANAGER ~
 
 >lua
-    {
-      "mosheavni/yaml-companion.nvim",
-      opts = {
-        -- Add any options here, or leave empty to use the default settings
-        -- lspconfig = {
-        --   settings = { ... }
-        -- },
-      },
-      config = function(_, opts)
-        local cfg = require("yaml-companion").setup(opts)
-        vim.lsp.config("yamlls", cfg)
-        vim.lsp.enable("yamlls")
-      end,
-    }
+    vim.pack.add({
+      { src = "https://github.com/mosheavni/yaml-companion.nvim" },
+    })
+    
+    local cfg = require("yaml-companion").setup({
+      -- Add any options here, or leave empty to use the default settings
+      -- lspconfig = {
+      --   settings = { ... }
+      -- },
+    })
+    vim.lsp.config("yamlls", cfg)
+    vim.lsp.enable("yamlls")
 <
 
 

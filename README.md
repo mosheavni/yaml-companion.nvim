@@ -4,7 +4,7 @@
 
 [![Build](https://github.com/mosheavni/yaml-companion.nvim/actions/workflows/main.yml/badge.svg)](https://github.com/mosheavni/yaml-companion.nvim/actions/workflows/main.yml)
 [![Lint](https://github.com/mosheavni/yaml-companion.nvim/actions/workflows/lint.yml/badge.svg)](https://github.com/mosheavni/yaml-companion.nvim/actions/workflows/lint.yml)
-[![Neovim](https://img.shields.io/badge/Neovim-0.11+-blueviolet.svg?logo=neovim)](https://neovim.io)
+[![Neovim](https://img.shields.io/badge/Neovim-0.12+-blueviolet.svg?logo=neovim)](https://neovim.io)
 
 ![completion](https://github.com/user-attachments/assets/40509084-c69a-4c8d-8380-9149b439b7ad)
 ![schema-auto-detect](https://github.com/user-attachments/assets/dc8fd636-aac2-42d2-b3dd-9aa306221d6d)
@@ -45,25 +45,21 @@
 
 ## 📦 Installation
 
-Install the plugin with your preferred package manager:
-
-### lazy.nvim
+### [vim.pack](https://neovim.io/doc/user/pack.html#vim.pack) — Neovim 0.12+ native plugin manager
 
 ```lua
-{
-  "mosheavni/yaml-companion.nvim",
-  opts = {
-    -- Add any options here, or leave empty to use the default settings
-    -- lspconfig = {
-    --   settings = { ... }
-    -- },
-  },
-  config = function(_, opts)
-    local cfg = require("yaml-companion").setup(opts)
-    vim.lsp.config("yamlls", cfg)
-    vim.lsp.enable("yamlls")
-  end,
-}
+vim.pack.add({
+  { src = "https://github.com/mosheavni/yaml-companion.nvim" },
+})
+
+local cfg = require("yaml-companion").setup({
+  -- Add any options here, or leave empty to use the default settings
+  -- lspconfig = {
+  --   settings = { ... }
+  -- },
+})
+vim.lsp.config("yamlls", cfg)
+vim.lsp.enable("yamlls")
 ```
 
 ## ⚙️ Configuration
